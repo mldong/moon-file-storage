@@ -1,0 +1,54 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-qiniu/qiniu"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-hutool/http",
+  "mldong/moon-kodo/kodo",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct QiniuPlatform {
+  // private fields
+}
+pub async fn QiniuPlatform::abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub fn QiniuPlatform::capabilities(Self) -> @model.Capabilities
+pub fn QiniuPlatform::close(Self) -> Unit
+pub async fn QiniuPlatform::complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
+pub fn QiniuPlatform::config(Self) -> QiniuPlatformConfig
+pub async fn QiniuPlatform::delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn QiniuPlatform::download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+pub async fn QiniuPlatform::exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn QiniuPlatform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub async fn QiniuPlatform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn QiniuPlatform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
+pub async fn QiniuPlatform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub fn QiniuPlatform::name(Self) -> String
+pub fn QiniuPlatform::new(QiniuPlatformConfig) -> Self
+pub fn QiniuPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub async fn QiniuPlatform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn QiniuPlatform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn QiniuPlatform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
+pub async fn QiniuPlatform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
+pub async fn QiniuPlatform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub impl @platform.Platform for QiniuPlatform
+
+pub(all) struct QiniuPlatformConfig {
+  platform : String
+  bucket : String
+  domain : String?
+  check_crc : Bool
+  client : @kodo.Client
+  transport : &@http.Transport
+}
+pub fn QiniuPlatformConfig::new(String, @kodo.Client, &@http.Transport, domain? : String?, check_crc? : Bool) -> Self
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,19 @@
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-kodo/kodo" @sdk,
+  "mldong/moon-kodo/error" @kodoerr,
+  "mldong/moon-hutool/http" @transport,
+  "moonbitlang/async/io",
+}
+
+// 离线用例要能自己造一个 Client（假凭据、桩传输、一条请求都不发）：
+// 签名件与区域表只在测试侧进来，生产侧只经 `@sdk.Client`。
+import {
+  "mldong/moon-kodo/auth",
+  "mldong/moon-kodo/config",
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async",
+} for "test"
+
+supported_targets = "wasm+native"

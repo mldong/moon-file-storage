@@ -3,5 +3,6 @@ members = [
   "./recorder-file",
   "./platform-local",
   "./platform-s3",
+  "./platform-qiniu",
   "./verify",
 ]
