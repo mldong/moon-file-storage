@@ -1,14 +1,19 @@
 name: ci
 
-# 存储仓的门禁。形状与 moon-s3／moon-kodo 那两条一致，差别只有一处，而且是结构性的：
-# platform-s3 与 platform-qiniu 依赖的两个 SDK 还没进注册表（本仓先发版之前，pin 装不到东西），
-# 所以这里把三个仓拉到同一条流水里，现生成一份跨仓工作区跑整链——档位数字是整树的 164，
-# 不是本仓单独的 56；两侧数字都记在 README 的验收口径里，别把整链读数当成本仓读数。
+# 存储仓的门禁，形状与 moon-s3／moon-kodo 那两条一致。
 #
-# 等 moon-s3 与 moon-kodo 首发之后这一步要切回"只跑本仓"：删掉下面两个 checkout 与那份现生成的
-# moon.work，工作目录回到仓库自身，EXPECTED 改成本仓条数。切换的前提是 pin 真装得到。
+# 这一步以前是"把三个仓拉到同一条流水里现生成跨仓工作区"，因为 platform-s3／platform-qiniu 引的两个
+# SDK 还没进注册表，pin 装不到东西。2026-10-18 两条 SDK 各发了 v0.1.0，本机现读 `moon install` 已经从
+# 注册表取到 mldong/moon-s3@0.1.0 与 mldong/moon-kodo@0.1.0 ⇒ 切换回"只跑本仓"：档位数字是本仓的 56，
+# 不再是整树的 164。两侧读数都记在台账与 README 的验收口径里。
+#
+# 这条 CI 刻意不带任何凭据（MinIO／七牛真桶／FTP 都不给），所以 5 条 live 腿必然响亮 SKIP：
+# 4 条平台腿（local／s3／qiniu／ftp 各一）＋1 档契约的 acl:true。条数被断言钉死成恰好 5——
+# 少一条就是有人把某档偷偷接上了，多一条是夹具掉了，两种都要红。真端点那档只在本机带凭据跑，
+# 别把这里的绿读成"六条腿都验过"。
 #
 # 用例条数断言不许删：wasm-gc 那档会静默丢掉异步用例而退出码仍为 0，条数是"真跑过"的唯一证据。
+# 条数与改动同笔更新；对不上先现读再改，严禁拿删断言变绿。
 
 on:
   push:
@@ -22,34 +27,13 @@ concurrency:
 
 jobs:
   verify:
-    name: Check / Build / Test (wasm + native, cross-repo)
+    name: Check / Build / Test (wasm + native)
     runs-on: ubuntu-latest
     env:
-      EXPECTED_TESTS: "164"
-      CROSS: ${{ github.workspace }}/crossrepo
+      EXPECTED_TESTS: "56"
+      EXPECTED_SKIPS: "5"
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: ${{ github.workspace }}/moon-file-storage
-
-      - name: Checkout the two SDK repos (pre-publish substitute for a registry pin)
-        run: |
-          git clone --depth 1 https://github.com/mldong/moon-s3 "$GITHUB_WORKSPACE/moon-s3"
-          git clone --depth 1 https://github.com/mldong/moon-kodo "$GITHUB_WORKSPACE/moon-kodo"
-
-      - name: Build the cross-repo workspace
-        run: |
-          mkdir -p "$CROSS"
-          {
-            echo 'members = ['
-            for m in core recorder-file platform-local platform-s3 platform-qiniu \
-                     platform-ftp verify examples; do
-              echo "  \"$GITHUB_WORKSPACE/moon-file-storage/$m\","
-            done
-            echo "  \"$GITHUB_WORKSPACE/moon-s3\","
-            echo "  \"$GITHUB_WORKSPACE/moon-kodo\","
-            echo ']'
-          } > "$CROSS/moon.work"
 
       - name: Install MoonBit toolchain (latest)
         run: |
@@ -62,51 +46,46 @@ jobs:
           moon update
 
       - name: Check
-        working-directory: ${{ env.CROSS }}
         run: moon check --target wasm --no-render
 
       - name: Build
-        working-directory: ${{ env.CROSS }}
         run: |
           moon build --target wasm --no-render
           moon build --target native --no-render
 
       - name: Test
-        working-directory: ${{ env.CROSS }}
         run: |
           # pipefail 不许省：GH 默认只给 -e，`moon test | tee` 的退出码是 tee 的 0，
           # 真红的用例会被这条管道吃掉、只剩"Total tests" 那半句自证过关。
+          # 判据因此打全串（passed 与 failed 都钉住），不认"总条数对得上"。
           set -o pipefail
           moon test --target wasm -j 1 --no-render | tee wasm-test.txt
           moon test --target native -j 1 --no-render | tee native-test.txt
           for f in wasm-test.txt native-test.txt; do
             grep -q "Total tests: $EXPECTED_TESTS, passed: $EXPECTED_TESTS, failed: 0" "$f"
+            skips=$(grep -c "SKIP IS NOT A PASS" "$f" || true)
+            echo "$f：$EXPECTED_TESTS 条全绿已核，SKIP 行数=$skips（CI 无凭据，应为 $EXPECTED_SKIPS）"
+            test "$skips" = "$EXPECTED_SKIPS"
           done
-          # 这条仓的 live 腿（MinIO／七牛真桶／FTP）在 CI 里没有端点也没有凭据，必然响亮 SKIP；
-          # 这里是公开门禁，不给凭据是刻意的。把 SKIP 行数打进 summary，
-          # 数字一变就说明有腿被人偷偷接上或偷偷掉线了，别把它当"覆盖到了"。
-          echo "SKIP 行数=$(grep -c 'SKIP IS NOT A PASS' wasm-test.txt || true)（CI 无凭据，live 腿只在本机跑）" \
-            >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "这轮**没有**跑到的 $EXPECTED_SKIPS 条 live 腿（CI 刻意不带凭据）："
+            grep "^SKIP IS NOT A PASS" wasm-test.txt | sort | uniq -c
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: README snippet check
-        working-directory: ${{ github.workspace }}/moon-file-storage
         run: |
           export MOON_HOME="$HOME/.moon"
-          EXTRA_MEMBERS="$GITHUB_WORKSPACE/moon-s3 $GITHUB_WORKSPACE/moon-kodo" \
-            bash scripts/readme-check.sh
+          bash scripts/readme-check.sh
 
       - name: Generated interface is up to date
-        working-directory: ${{ env.CROSS }}
         run: |
           moon info --target wasm
-          git -C "$GITHUB_WORKSPACE/moon-file-storage" diff --exit-code -- '*pkg.generated.mbti'
+          git diff --exit-code -- '*pkg.generated.mbti'
 
       - name: Formatting
-        working-directory: ${{ env.CROSS }}
         run: moon fmt --check
 
       - name: Assert zero warnings
-        working-directory: ${{ env.CROSS }}
         run: |
           moon check --target wasm --no-render 2>&1 | tee check.txt
           ! grep -q "Warning" check.txt

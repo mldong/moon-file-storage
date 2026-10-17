@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# 把每个 README 的「最小用法」代码块逐字抽出来，灌进一个指向本仓源码的独立工程，真编译真跑。
+# 把每个 README 的「最小用法」代码块逐字抽出来，灌进一个独立工程，真编译真跑。
 #
-# 判的是"文档写的形状就是用户抄了能跑的东西"。本仓还没发布到注册表，所以只有 source 一档：
-# 临时 workspace 的 members 指向仓内各模块，pin 也从各模块 moon.mod 现读，不写死版本号。
-# 等发布之后再补 registry 一档（判"用户今天照 README 敲能不能装到"）。
+# 判的是"文档写的形状就是用户抄了能跑的东西"。本仓自己还没进注册表，所以本仓那 7 个模块走
+# source 一档（临时 workspace 的 members 指向仓内各模块）；两个 SDK 走注册表一档——pin 从
+# 消费它们的模块现读，装的是用户今天真装得到的那份。
+# EXTRA_MEMBERS 仍可用：SDK 改动还没发版、要先验 README 时把邻居仓挂进工作区。
 #
 # 通过 = 零警告 + failed: 0。警告不许豁免：抽出来的代码是真代码，报警告就是真问题。
 set -euo pipefail
@@ -30,6 +31,16 @@ VERSION=$(sed -nE 's/^version = "([^"]+)".*/\1/p' core/moon.mod | head -1)
 ASYNC=$(sed -nE 's/.*"moonbitlang\/async@([^"]+)".*/\1/p' core/moon.mod | head -1)
 # HTTP 传输端口的 pin 从"需要它的那个模块"现读，别从 core 取（core 不引 http 包）
 HUTOOL=$(sed -nE 's/.*"mldong\/moon-hutool@([^"]+)".*/\1/p' core/moon.mod | head -1)
+# 两个 SDK 已进注册表（各 v0.1.0），pin 从"消费它的那个适配层"现读，别写死版本号：
+# 这条 README 检查因此打在**用户真装得到的那份**上，而不是隔壁仓的源码。
+S3PIN=$(sed -nE 's/.*"mldong\/moon-s3@([^"]+)".*/\1/p' platform-s3/moon.mod | head -1)
+KODOPIN=$(sed -nE 's/.*"mldong\/moon-kodo@([^"]+)".*/\1/p' platform-qiniu/moon.mod | head -1)
+# EXTRA_MEMBERS 是发布前那条跨仓联调路：邻居模块进了工作区就不再往 import 里写注册表 pin，
+# 否则同一个模块会出现两条依赖（工作区成员与注册表各一）。
+EM_NAMES=""
+for x in ${EXTRA_MEMBERS:-}; do
+  EM_NAMES="$EM_NAMES $(sed -nE 's/^name = "([^"]+)".*/\1/p' "$x/moon.mod" | head -1)"
+done
 {
   echo 'name = "mldong/readme_check"'
   echo 'version = "0.0.0"'
@@ -42,6 +53,13 @@ HUTOOL=$(sed -nE 's/.*"mldong\/moon-hutool@([^"]+)".*/\1/p' core/moon.mod | head
              mldong/moon-file-storage-recorder-file \
              mldong/moon-file-storage-verify; do
     echo "  \"$pkg@$VERSION\","
+  done
+  for pair in "mldong/moon-s3@$S3PIN" "mldong/moon-kodo@$KODOPIN"; do
+    name=${pair%%@*}
+    case " $EM_NAMES " in
+      *" $name "*) ;;
+      *) echo "  \"$pair\"," ;;
+    esac
   done
   for x in ${EXTRA_MEMBERS:-}; do
     en=$(sed -nE 's/^name = "([^"]+)".*/\1/p' "$x/moon.mod" | head -1)
