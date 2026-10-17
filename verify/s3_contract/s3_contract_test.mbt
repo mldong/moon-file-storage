@@ -3,6 +3,19 @@
 // skip, and the skip says out loud that it proved nothing.
 
 ///|
+/// 一轮一个专属前缀/桶名：CI 给 MOONFS_RUN_TAG=run_id-attempt，没给就用毫秒时刻。
+/// 原来这里是写死的 `moonfs-contract-20261016` —— 两个 run 共用一个前缀时，
+/// 先跑完那个的收尾清扫会把另一个正在写的键删掉，红得查不出来。
+fn run_tag() -> String {
+  let from_env = @env.get_env_var("MOONFS_RUN_TAG").unwrap_or("")
+  if from_env.is_empty() {
+    @env.now().to_string()
+  } else {
+    from_env
+  }
+}
+
+///|
 fn live_env() -> (String, String, String, String, String)? {
   let endpoint = @env.get_env_var("S3_LIVE_ENDPOINT")
   let bucket = @env.get_env_var("S3_LIVE_BUCKET")
@@ -235,7 +248,7 @@ async fn run_minio(
   access_key : String,
   secret_key : String,
 ) -> Unit {
-  let prefix = "moonfs-contract-20261016"
+  let prefix = "moonfs-contract-" + run_tag()
   let domain = endpoint + "/" + bucket + "/" + prefix
   let transport = @transport.AsyncHttpTransport::new()
   let config = @sdk.Config::new(
@@ -397,8 +410,7 @@ async fn run_acl_capable(
   access_key : String,
   secret_key : String,
 ) -> Unit {
-  let stamps = @sdk.utc_stamps(@env.now().reinterpret_as_int64())
-  let bucket = "moonfs-acl-" + stamps.0
+  let bucket = "moonfs-acl-" + run_tag()
   let prefix = "moonfs-acl-contract"
   let platform_name = "acl-1"
   let transport = @transport.AsyncHttpTransport::new()
