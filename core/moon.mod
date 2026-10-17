@@ -10,7 +10,7 @@ description = "File storage models, the platform and recorder ports, and the ser
 
 import {
   "moonbitlang/async@0.22.4",
-  "mldong/moon-hutool@0.1.4",
+  "mldong/moon-hutool@0.1.5",
 }
 
 readme = "README.md"

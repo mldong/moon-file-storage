@@ -9,7 +9,7 @@ preferred_target = "wasm"
 description = "Qiniu Kodo platform adapter for moon-file-storage"
 
 import {
-  "mldong/moon-hutool@0.1.4",
+  "mldong/moon-hutool@0.1.5",
   "mldong/moon-file-storage@0.1.0",
   "mldong/moon-kodo@0.1.0",
   "moonbitlang/async@0.22.4",

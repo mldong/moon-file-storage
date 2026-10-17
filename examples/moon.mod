@@ -9,7 +9,7 @@ preferred_target = "wasm"
 description = "Local workspace examples; not a published module"
 
 import {
-  "mldong/moon-hutool@0.1.4",
+  "mldong/moon-hutool@0.1.5",
   "mldong/moon-file-storage@0.1.0",
   "mldong/moon-file-storage-local@0.1.0",
   "mldong/moon-file-storage-recorder-file@0.1.0",

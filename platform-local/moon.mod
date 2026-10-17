@@ -10,7 +10,7 @@ description = "Local filesystem platform for moon-file-storage"
 
 import {
   "mldong/moon-file-storage@0.1.0",
-  "mldong/moon-hutool@0.1.4",
+  "mldong/moon-hutool@0.1.5",
   "moonbitlang/async@0.22.4",
 }
 

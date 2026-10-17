@@ -74,10 +74,19 @@ jobs:
       - name: Test
         working-directory: ${{ env.CROSS }}
         run: |
-          moon test --target wasm --no-render | tee wasm-test.txt
-          moon test --target native --no-render | tee native-test.txt
-          grep -q "Total tests: $EXPECTED_TESTS" wasm-test.txt
-          grep -q "Total tests: $EXPECTED_TESTS" native-test.txt
+          # pipefail 不许省：GH 默认只给 -e，`moon test | tee` 的退出码是 tee 的 0，
+          # 真红的用例会被这条管道吃掉、只剩"Total tests" 那半句自证过关。
+          set -o pipefail
+          moon test --target wasm -j 1 --no-render | tee wasm-test.txt
+          moon test --target native -j 1 --no-render | tee native-test.txt
+          for f in wasm-test.txt native-test.txt; do
+            grep -q "Total tests: $EXPECTED_TESTS, passed: $EXPECTED_TESTS, failed: 0" "$f"
+          done
+          # 这条仓的 live 腿（MinIO／七牛真桶／FTP）在 CI 里没有端点也没有凭据，必然响亮 SKIP；
+          # 这里是公开门禁，不给凭据是刻意的。把 SKIP 行数打进 summary，
+          # 数字一变就说明有腿被人偷偷接上或偷偷掉线了，别把它当"覆盖到了"。
+          echo "SKIP 行数=$(grep -c 'SKIP IS NOT A PASS' wasm-test.txt || true)（CI 无凭据，live 腿只在本机跑）" \
+            >> "$GITHUB_STEP_SUMMARY"
 
       - name: README snippet check
         working-directory: ${{ github.workspace }}/moon-file-storage
