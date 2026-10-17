@@ -2,5 +2,6 @@ members = [
   "./core",
   "./recorder-file",
   "./platform-local",
+  "./platform-s3",
   "./verify",
 ]

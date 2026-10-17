@@ -1,0 +1,9 @@
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-s3/s3" @sdk,
+  "mldong/moon-hutool/http" @transport,
+  "moonbitlang/async/io",
+}
+
+supported_targets = "wasm+native"

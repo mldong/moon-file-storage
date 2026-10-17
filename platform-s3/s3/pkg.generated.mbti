@@ -1,0 +1,51 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-s3/s3"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct S3Platform {
+  // private fields
+}
+pub async fn S3Platform::abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub fn S3Platform::capabilities(Self) -> @model.Capabilities
+pub fn S3Platform::close(Self) -> Unit
+pub async fn S3Platform::complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
+pub fn S3Platform::config(Self) -> S3PlatformConfig
+pub async fn S3Platform::delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn S3Platform::download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+pub async fn S3Platform::exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn S3Platform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub async fn S3Platform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn S3Platform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
+pub async fn S3Platform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub fn S3Platform::name(Self) -> String
+pub fn S3Platform::new(S3PlatformConfig) -> Self
+pub fn S3Platform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub async fn S3Platform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn S3Platform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn S3Platform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
+pub async fn S3Platform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
+pub async fn S3Platform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub impl @platform.Platform for S3Platform
+
+pub(all) struct S3PlatformConfig {
+  platform : String
+  bucket : String
+  base_path : String
+  supports_acl : Bool
+  domain : String?
+  client : @mldong/moon-s3/s3.Client
+}
+
+// Type aliases
+
+// Traits
