@@ -163,8 +163,15 @@ moon add moonbitlang/async
 
 ## 状态
 
-仓已公开，注册表版本尚未发：一旦发上去，公共 API（`Platform` 与 `Recorder` 的方法签名、
-`Capabilities` 的七个能力位）就是冻结对象，改形状要前进代次。
+七件走 mooncakes 发布的模块：门面 `mldong/moon-file-storage`、四件平台适配（`-local`／`-s3`／`-qiniu`／`-ftp`）、
+文件记录器 `-recorder-file`、契约套件 `-verify`；`examples` 不发。次序与门禁在同仓
+`.github/workflows/ci.yml` 的 publish job（拓扑序：门面先，`-verify` 最后）。当前代次与依赖 pin 一律现读——
+注册表上该模块的页面，或 `moon add <模块>` 之后 `moon.mod` 回写的那一行，本文件不写死版本号。
+
+公共 API 一旦发布就是冻结对象（`Platform` 与 `Recorder` 的方法签名、`Capabilities` 的七个能力位）：
+改形状要前进代次，而且**连注释都要重发才上注册表页面**（发布包根就是模块目录，页面读的是那份 README）。
+FTP 那件的进度表状态仍是"载体库未满足接入条件"——包发得出、装得到，但那条腿的接入判据没满足，
+别把"已发布"读成"已可用"。
 
 ## 许可
 

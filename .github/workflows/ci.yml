@@ -18,8 +18,14 @@ name: ci
 on:
   push:
     branches: [master]
+    tags: ['v*.*.*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "检查全绿后是否发布七个模块到 mooncakes（tag 触发默认发布；手动触发需显式勾选）"
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -89,3 +95,118 @@ jobs:
         run: |
           moon check --target wasm --no-render 2>&1 | tee check.txt
           ! grep -q "Warning" check.txt
+
+  publish:
+    name: Publish the seven modules to mooncakes
+    needs: verify
+    # 判据是单数 'tag'：写成 'tags' 会让 tag 推送的整个 publish job 被 skip，而 workflow 结论
+    # 照旧 success（moon-token 的 v0.1.7 就是这么静默漏发过一次）。下面第一步把三个值打进 log。
+    if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: What triggered this publish
+        env:
+          PUBLISH_INPUT: ${{ inputs.publish }}
+        run: |
+          echo "event_name=$GITHUB_EVENT_NAME ref=$GITHUB_REF ref_type=$GITHUB_REF_TYPE"
+          echo "publish input=$PUBLISH_INPUT"
+          for m in core recorder-file platform-local platform-s3 platform-qiniu platform-ftp verify; do
+            echo "  $m = $(sed -nE 's/^version = "([^"]+)".*/\1/p' "$m/moon.mod" | head -1)"
+          done
+
+      - name: Install MoonBit toolchain (latest)
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+          "$HOME/.moon/bin/moon" version
+
+      - name: Preflight credentials present (values never printed)
+        env:
+          MOON_TOKEN: ${{ secrets.MOON_TOKEN }}
+          MOON_USERNAME: ${{ secrets.MOON_USERNAME }}
+        run: |
+          [ -n "$MOON_TOKEN" ] || {
+            echo "::error::secrets.MOON_TOKEN 没到位（org mldong 的 secret 需把本仓放进可见范围）"
+            exit 1
+          }
+          [ -n "$MOON_USERNAME" ] || { echo "::error::secrets.MOON_USERNAME 没到位"; exit 1; }
+          echo "凭证到位：token 长度 ${#MOON_TOKEN}（值不外泄），用户名 $MOON_USERNAME"
+
+      - name: Write mooncakes credentials
+        env:
+          MOON_TOKEN: ${{ secrets.MOON_TOKEN }}
+          MOON_USERNAME: ${{ secrets.MOON_USERNAME }}
+        run: |
+          mkdir -p "$HOME/.moon"
+          printf '{"token":"%s","username":"%s"}\n' "$MOON_TOKEN" "$MOON_USERNAME" \
+            > "$HOME/.moon/credentials.json"
+
+      - name: Update index and install dependencies
+        run: |
+          moon update
+          moon install
+
+      # 拓扑序，不是随手排的：后六件都 pin 门面 `mldong/moon-file-storage`，verify 又 pin 前面全部
+      # 六件（外加注册表上的 moon-s3／moon-kodo）。`moon publish` 的包体校验要**从注册表**解析这些
+      # 依赖，所以必须先发被依赖的那件；顺序错了会 "no version satisfies" 卡死，而那一件其实已发上去
+      # ——所以每一步都可重入（publish-if-absent.sh：每步前 moon update，已在注册表即跳过，
+      # 发完一律回查索引复核，CLI 退出码分不清"没发上"与"上传之后环节报错"）。
+      # examples 不发布：它是可执行示例，没有消费方，发出去只会多一个没人 import 的包。
+      - name: Publish core (mldong/moon-file-storage)
+        run: bash .github/scripts/publish-if-absent.sh core mldong/moon-file-storage
+
+      - name: Publish recorder-file
+        run: bash .github/scripts/publish-if-absent.sh recorder-file mldong/moon-file-storage-recorder-file
+
+      - name: Publish platform-local
+        run: bash .github/scripts/publish-if-absent.sh platform-local mldong/moon-file-storage-local
+
+      - name: Publish platform-s3
+        run: bash .github/scripts/publish-if-absent.sh platform-s3 mldong/moon-file-storage-s3
+
+      - name: Publish platform-qiniu
+        run: bash .github/scripts/publish-if-absent.sh platform-qiniu mldong/moon-file-storage-qiniu
+
+      # FTP 这条的进度表状态是"载体库未满足接入条件"，但包本身可发：pin 的是注册表上的
+      # PaiGack/ftp，消费方装得到、也能照 verify 的契约自己写腿；不发它反而让 verify 的依赖闭包缺角。
+      - name: Publish platform-ftp
+        run: bash .github/scripts/publish-if-absent.sh platform-ftp mldong/moon-file-storage-ftp
+
+      - name: Publish verify (contract suite)
+        run: bash .github/scripts/publish-if-absent.sh verify mldong/moon-file-storage-verify
+
+      # 用户那条腿：只认"装得到"。空工程逐个 `moon add` 七件（不给版本号⇒由注册表解析），
+      # 再把 pin 打进 log，最后拿刚装上的那份真编译真跑一条纯函数断言。
+      # 为什么不用 `import { "..." }`：这个版本的 moon.mod 拒绝无版本号的 registry 依赖。
+      - name: Consumer leg — install all seven from the registry and run one
+        run: |
+          export MOON_HOME="$HOME/.moon"
+          moon update
+          probe="$RUNNER_TEMP/consumer-storage"
+          rm -rf "$probe"; mkdir -p "$probe/lib"
+          printf 'name = "mldong/consumer_probe_storage"\nversion = "0.0.0"\npreferred_target = "wasm"\n' > "$probe/moon.mod"
+          printf 'import {\n  "mldong/moon-file-storage/model" @model,\n}\n' > "$probe/lib/moon.pkg"
+          printf 'test "the just-published facade installs and works" {\n  assert_eq(@model.object_key("uploads/", "a.txt"), "uploads/a.txt")\n}\n' > "$probe/lib/probe_test.mbt"
+          cd "$probe"
+          for m in mldong/moon-file-storage \
+                   mldong/moon-file-storage-recorder-file \
+                   mldong/moon-file-storage-local \
+                   mldong/moon-file-storage-s3 \
+                   mldong/moon-file-storage-qiniu \
+                   mldong/moon-file-storage-ftp \
+                   mldong/moon-file-storage-verify; do
+            a=1
+            until moon add "$m"; do
+              if [ "$a" -ge 3 ]; then
+                echo "::error::连试 3 次都从注册表装不到 $m —— 这次是真没装得到"
+                exit 1
+              fi
+              a=$((a + 1)); moon update >/dev/null 2>&1 || true; sleep 20
+            done
+            echo "$m 安装所用尝试次数：$a / 3" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "解析到的 pin：" >> "$GITHUB_STEP_SUMMARY"
+          sed -nE 's/.*"(mldong\/moon-file-storage[^"]+)".*/  \1/p' moon.mod | tee -a "$GITHUB_STEP_SUMMARY"
+          moon test --target wasm --no-render
