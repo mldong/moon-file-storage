@@ -1,0 +1,177 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage/model"
+
+import {
+  "moonbitlang/async/io",
+  "moonbitlang/core/json",
+}
+
+// Values
+pub fn object_key(String, String) -> String
+
+pub let upload_status_complete : String
+
+pub let upload_status_initiate : String
+
+// Errors
+pub(all) suberror StorageError {
+  InvalidInput(String)
+  NotSupported(String)
+  NotFound(String)
+  Platform(String)
+  Recorder(String)
+}
+
+// Types and methods
+pub(all) enum CannedAcl {
+  Private
+  PublicRead
+  PublicReadWrite
+} derive(Eq)
+pub fn CannedAcl::equal(Self, Self) -> Bool
+pub fn CannedAcl::header_value(Self) -> String
+pub fn CannedAcl::not_equal(Self, Self) -> Bool
+
+pub(all) struct Capabilities {
+  multipart_upload : Bool
+  list_files : Bool
+  presigned_url : Bool
+  acl : Bool
+  metadata : Bool
+  same_copy : Bool
+  same_move : Bool
+}
+
+pub(all) enum CopyMode {
+  Auto
+  Same
+  Cross
+} derive(Eq)
+pub fn CopyMode::equal(Self, Self) -> Bool
+pub fn CopyMode::not_equal(Self, Self) -> Bool
+
+pub(all) struct FileInfo {
+  id : String?
+  url : String
+  size : Int64?
+  filename : String
+  original_filename : String
+  base_path : String
+  path : String
+  ext : String
+  content_type : String?
+  platform : String
+  th_url : String?
+  th_filename : String?
+  th_size : Int64?
+  th_content_type : String?
+  object_id : String?
+  object_type : String?
+  metadata : Map[String, String]
+  user_metadata : Map[String, String]
+  th_metadata : Map[String, String]
+  th_user_metadata : Map[String, String]
+  attr : Map[String, Json]
+  file_acl : Json?
+  th_file_acl : Json?
+  hash_info : HashInfo?
+  upload_id : String?
+  upload_status : String?
+  create_time : Int64
+} derive(Eq, ToJson, @json.FromJson)
+pub fn FileInfo::copy_destination(Self, Self, Int64) -> Self
+pub fn FileInfo::draft(String, String, String, String) -> Self
+pub fn FileInfo::equal(Self, Self) -> Bool
+pub fn FileInfo::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn FileInfo::not_equal(Self, Self) -> Bool
+pub fn FileInfo::stamped(Self, Stamp) -> Self
+pub fn FileInfo::to_json(Self) -> Json
+pub fn FileInfo::with_create_time(Self, Int64) -> Self
+pub fn FileInfo::with_platform(Self, String) -> Self
+pub fn FileInfo::with_upload_status(Self, String) -> Self
+
+pub(all) struct FileListing {
+  dirs : Array[ListedDir]
+  files : Array[ListedFile]
+  is_truncated : Bool
+  next_continuation_token : String?
+}
+
+pub(all) struct FilePartInfo {
+  platform : String
+  upload_id : String
+  part_number : Int
+  size : Int64
+  etag : String
+} derive(Eq, ToJson, @json.FromJson)
+pub fn FilePartInfo::equal(Self, Self) -> Bool
+pub fn FilePartInfo::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn FilePartInfo::not_equal(Self, Self) -> Bool
+pub fn FilePartInfo::to_json(Self) -> Json
+
+pub(all) struct HashInfo {
+  md5 : String?
+  sha1 : String?
+  sha256 : String?
+} derive(Eq, ToJson, @json.FromJson)
+pub fn HashInfo::equal(Self, Self) -> Bool
+pub fn HashInfo::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn HashInfo::not_equal(Self, Self) -> Bool
+pub fn HashInfo::to_json(Self) -> Json
+
+pub(all) struct ListedDir {
+  path : String
+  name : String
+} derive(Eq)
+pub fn ListedDir::equal(Self, Self) -> Bool
+pub fn ListedDir::not_equal(Self, Self) -> Bool
+
+pub(all) struct ListedFile {
+  path : String
+  name : String
+  size : Int64
+  last_modified : String?
+  etag : String?
+} derive(Eq)
+pub fn ListedFile::equal(Self, Self) -> Bool
+pub fn ListedFile::not_equal(Self, Self) -> Bool
+
+pub(all) enum MoveMode {
+  Auto
+  Same
+  Cross
+} derive(Eq)
+pub fn MoveMode::equal(Self, Self) -> Bool
+pub fn MoveMode::not_equal(Self, Self) -> Bool
+
+pub(all) struct PartPage {
+  parts : Array[FilePartInfo]
+  is_truncated : Bool
+  next_part_number_marker : Int?
+}
+
+pub(all) enum PresignMethod {
+  Get
+  Put
+}
+
+pub(all) struct Stamp {
+  platform : String?
+  path : String?
+  url : String?
+  size : Int64?
+  create_time : Int64?
+  upload_id : String?
+  upload_status : String?
+  user_metadata : Map[String, String]?
+}
+
+pub(all) enum UploadSource {
+  Bytes(Bytes)
+  Path(String)
+  Stream(&@io.Reader, Int64?)
+}
+
+// Type aliases
+
+// Traits

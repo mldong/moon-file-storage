@@ -1,0 +1,37 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage/platform"
+
+import {
+  "mldong/moon-file-storage/model",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+pub(open) trait Platform {
+  fn name(Self) -> String
+  fn capabilities(Self) -> @model.Capabilities
+  async fn save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
+  async fn get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+  async fn exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+  async fn delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+  async fn download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+  async fn init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+  async fn upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+  async fn list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+  async fn complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
+  async fn abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+  fn presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+  async fn same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+  async fn same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+  async fn list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
+  async fn set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
+  fn close(Self) -> Unit
+}

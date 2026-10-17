@@ -1,0 +1,11 @@
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-file-storage/recorder",
+  "mldong/moon-file-storage/storage",
+  "moonbitlang/async/io",
+  "moonbitlang/core/ref",
+  "moonbitlang/core/encoding/utf8",
+}
+
+supported_targets = "wasm+native"

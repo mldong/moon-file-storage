@@ -1,0 +1,16 @@
+// 第三条腿：一条声称"三族都没有"的平台。
+// 契约里 false 档的断言只有在这里才不是空转——local 与 MinIO 两条腿的三族全是
+// true，所以"拒绝必须真拒绝"这条判据在真实腿上永远跑不到。
+import {
+  "mldong/moon-file-storage-verify/contract",
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-file-storage/storage",
+  "mldong/moon-file-storage-local/local",
+  "mldong/moon-file-storage-recorder-file/file" @record,
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+} for "test"
+
+supported_targets = "wasm+native"

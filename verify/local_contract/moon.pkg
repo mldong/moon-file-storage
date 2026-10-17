@@ -1,0 +1,13 @@
+// 同上：契约套件的入口是纯测试包。
+import {
+  "mldong/moon-file-storage-verify/contract",
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/storage",
+  "mldong/moon-file-storage-local/local",
+  "mldong/moon-file-storage-recorder-file/file" @record,
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/core/encoding/utf8",
+} for "test"
+
+supported_targets = "wasm+native"

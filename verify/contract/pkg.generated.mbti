@@ -1,0 +1,68 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-verify/contract"
+
+import {
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-file-storage/recorder",
+  "mldong/moon-file-storage/storage",
+  "moonbitlang/async/io",
+}
+
+// Values
+pub async fn case_absent(Fixture) -> Unit
+
+pub async fn case_acl_claim(Fixture) -> Unit
+
+pub async fn case_copy(Fixture) -> Unit
+
+pub async fn case_facade_declines_or_delivers(Fixture) -> Unit
+
+pub async fn case_list_files(Fixture) -> Unit
+
+pub async fn case_metadata_claim(Fixture) -> Unit
+
+pub async fn case_move(Fixture) -> Unit
+
+pub async fn case_multipart(Fixture) -> Unit
+
+pub async fn case_multipart_records(Fixture) -> Unit
+
+pub async fn case_presigned_url(Fixture) -> Unit
+
+pub async fn case_round_trip(Fixture) -> Unit
+
+pub async fn case_same_copy_move(Fixture) -> Unit
+
+pub async fn case_stream_upload(Fixture) -> Unit
+
+pub async fn run_contract(Fixture) -> Unit
+
+// Errors
+
+// Types and methods
+pub(all) struct Fixture {
+  label : String
+  platform : String
+  base_path : String
+  domain : String
+  service : @storage.Service
+  recorder : &@recorder.Recorder
+  port : &@platform.Platform
+  presigned_markers : Array[String]
+}
+
+type Sink
+pub async fn Sink::write(Self, &@io.Data) -> Unit
+pub async fn Sink::write_once(Self, Bytes, offset~ : Int, len~ : Int) -> Int
+pub async fn Sink::write_reader(Self, &@io.Reader) -> Unit
+pub impl @io.Writer for Sink
+
+type SpotSink
+pub async fn SpotSink::write(Self, &@io.Data) -> Unit
+pub async fn SpotSink::write_once(Self, Bytes, offset~ : Int, len~ : Int) -> Int
+pub async fn SpotSink::write_reader(Self, &@io.Reader) -> Unit
+pub impl @io.Writer for SpotSink
+
+// Type aliases
+
+// Traits

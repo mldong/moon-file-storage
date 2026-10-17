@@ -1,0 +1,43 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage/storage"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-file-storage/recorder",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub(all) struct Service {
+  platforms : Array[&@platform.Platform]
+  recorder : &@recorder.Recorder
+}
+pub async fn Service::abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub fn Service::capabilities(Self, String) -> @model.Capabilities raise @model.StorageError
+pub fn Service::close(Self) -> Unit
+pub async fn Service::complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]?) -> @model.FileInfo raise @model.StorageError
+pub async fn Service::copy(Self, @model.FileInfo, @model.FileInfo, mode? : @model.CopyMode) -> @model.FileInfo raise @model.StorageError
+pub async fn Service::cross_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn Service::delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn Service::download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+pub async fn Service::exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn Service::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub async fn Service::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn Service::list_files(Self, String, String, String, String?) -> @model.FileListing? raise @model.StorageError
+pub async fn Service::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub async fn Service::move_file(Self, @model.FileInfo, @model.FileInfo, mode? : @model.MoveMode) -> @model.FileInfo raise @model.StorageError
+pub fn Service::new(Array[&@platform.Platform], &@recorder.Recorder) -> Self
+pub fn Service::platform_names(Self) -> Array[String]
+pub fn Service::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String? raise @model.StorageError
+pub async fn Service::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo raise @model.StorageError
+pub async fn Service::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Bool raise @model.StorageError
+pub async fn Service::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+
+// Type aliases
+
+// Traits

@@ -1,0 +1,6 @@
+import {
+  "mldong/moon-file-storage/model",
+  "moonbitlang/async/io",
+}
+
+supported_targets = "wasm+native+js"

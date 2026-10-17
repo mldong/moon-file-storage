@@ -1,0 +1,5 @@
+import {
+  "mldong/moon-file-storage/model",
+}
+
+supported_targets = "wasm+native+js"

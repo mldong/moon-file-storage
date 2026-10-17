@@ -1,0 +1,103 @@
+name: ci
+
+# 存储仓的门禁。形状与 moon-s3／moon-kodo 那两条一致，差别只有一处，而且是结构性的：
+# platform-s3 与 platform-qiniu 依赖的两个 SDK 还没进注册表（本仓先发版之前，pin 装不到东西），
+# 所以这里把三个仓拉到同一条流水里，现生成一份跨仓工作区跑整链——档位数字是整树的 164，
+# 不是本仓单独的 56；两侧数字都记在 README 的验收口径里，别把整链读数当成本仓读数。
+#
+# 等 moon-s3 与 moon-kodo 首发之后这一步要切回"只跑本仓"：删掉下面两个 checkout 与那份现生成的
+# moon.work，工作目录回到仓库自身，EXPECTED 改成本仓条数。切换的前提是 pin 真装得到。
+#
+# 用例条数断言不许删：wasm-gc 那档会静默丢掉异步用例而退出码仍为 0，条数是"真跑过"的唯一证据。
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Check / Build / Test (wasm + native, cross-repo)
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_TESTS: "164"
+      CROSS: ${{ github.workspace }}/crossrepo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{ github.workspace }}/moon-file-storage
+
+      - name: Checkout the two SDK repos (pre-publish substitute for a registry pin)
+        run: |
+          git clone --depth 1 https://github.com/mldong/moon-s3 "$GITHUB_WORKSPACE/moon-s3"
+          git clone --depth 1 https://github.com/mldong/moon-kodo "$GITHUB_WORKSPACE/moon-kodo"
+
+      - name: Build the cross-repo workspace
+        run: |
+          mkdir -p "$CROSS"
+          {
+            echo 'members = ['
+            for m in core recorder-file platform-local platform-s3 platform-qiniu \
+                     platform-ftp verify examples; do
+              echo "  \"$GITHUB_WORKSPACE/moon-file-storage/$m\","
+            done
+            echo "  \"$GITHUB_WORKSPACE/moon-s3\","
+            echo "  \"$GITHUB_WORKSPACE/moon-kodo\","
+            echo ']'
+          } > "$CROSS/moon.work"
+
+      - name: Install MoonBit toolchain (latest)
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> $GITHUB_PATH
+
+      - name: Toolchain version
+        run: |
+          moon version --all
+          moon update
+
+      - name: Check
+        working-directory: ${{ env.CROSS }}
+        run: moon check --target wasm --no-render
+
+      - name: Build
+        working-directory: ${{ env.CROSS }}
+        run: |
+          moon build --target wasm --no-render
+          moon build --target native --no-render
+
+      - name: Test
+        working-directory: ${{ env.CROSS }}
+        run: |
+          moon test --target wasm --no-render | tee wasm-test.txt
+          moon test --target native --no-render | tee native-test.txt
+          grep -q "Total tests: $EXPECTED_TESTS" wasm-test.txt
+          grep -q "Total tests: $EXPECTED_TESTS" native-test.txt
+
+      - name: README snippet check
+        working-directory: ${{ github.workspace }}/moon-file-storage
+        run: |
+          export MOON_HOME="$HOME/.moon"
+          EXTRA_MEMBERS="$GITHUB_WORKSPACE/moon-s3 $GITHUB_WORKSPACE/moon-kodo" \
+            bash scripts/readme-check.sh
+
+      - name: Generated interface is up to date
+        working-directory: ${{ env.CROSS }}
+        run: |
+          moon info --target wasm
+          git -C "$GITHUB_WORKSPACE/moon-file-storage" diff --exit-code -- '*pkg.generated.mbti'
+
+      - name: Formatting
+        working-directory: ${{ env.CROSS }}
+        run: moon fmt --check
+
+      - name: Assert zero warnings
+        working-directory: ${{ env.CROSS }}
+        run: |
+          moon check --target wasm --no-render 2>&1 | tee check.txt
+          ! grep -q "Warning" check.txt

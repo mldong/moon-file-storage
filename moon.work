@@ -1,0 +1,6 @@
+members = [
+  "./core",
+  "./recorder-file",
+  "./platform-local",
+  "./verify",
+]

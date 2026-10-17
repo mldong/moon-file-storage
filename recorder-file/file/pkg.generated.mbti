@@ -1,0 +1,35 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-recorder-file/file"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/recorder",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct FileRecorder {
+  // private fields
+}
+pub fn FileRecorder::config(Self) -> FileRecorderConfig
+pub async fn FileRecorder::delete(Self, String) -> Bool raise @model.StorageError
+pub async fn FileRecorder::delete_file_part_by_upload_id(Self, String) -> Unit raise @model.StorageError
+pub async fn FileRecorder::get_by_url(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub fn FileRecorder::new(FileRecorderConfig) -> Self
+pub async fn FileRecorder::part_rows(Self) -> Array[@model.FilePartInfo] raise @model.StorageError
+pub async fn FileRecorder::record_rows(Self) -> Array[@model.FileInfo] raise @model.StorageError
+pub async fn FileRecorder::save(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn FileRecorder::save_file_part(Self, @model.FilePartInfo) -> Unit raise @model.StorageError
+pub async fn FileRecorder::update(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub impl @recorder.Recorder for FileRecorder
+
+pub(all) struct FileRecorderConfig {
+  root_dir : String
+}
+
+// Type aliases
+
+// Traits

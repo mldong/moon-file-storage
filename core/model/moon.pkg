@@ -1,0 +1,6 @@
+import {
+  "moonbitlang/async/io",
+  "moonbitlang/core/json",
+}
+
+supported_targets = "wasm+native+js"
