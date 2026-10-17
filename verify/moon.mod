@@ -17,6 +17,7 @@ import {
   "mldong/moon-file-storage-qiniu@0.1.0",
   "mldong/moon-kodo@0.1.0",
   "mldong/moon-s3@0.1.0",
+  "mldong/moon-file-storage-ftp@0.1.0",
   "moonbitlang/async@0.22.4",
 }
 

@@ -1,0 +1,54 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-ftp/ftp"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct FtpPlatform {
+  config : FtpPlatformConfig
+  mut session : @PaiGack/ftp.FTPClient?
+  mut shut : Bool
+}
+pub async fn FtpPlatform::abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub fn FtpPlatform::capabilities(Self) -> @model.Capabilities
+pub fn FtpPlatform::close(Self) -> Unit
+pub async fn FtpPlatform::complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
+pub fn FtpPlatform::config(Self) -> FtpPlatformConfig
+pub async fn FtpPlatform::delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn FtpPlatform::download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+pub async fn FtpPlatform::exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn FtpPlatform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub async fn FtpPlatform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn FtpPlatform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
+pub async fn FtpPlatform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub fn FtpPlatform::name(Self) -> String
+pub fn FtpPlatform::new(FtpPlatformConfig) -> Self
+pub fn FtpPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub async fn FtpPlatform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn FtpPlatform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn FtpPlatform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
+pub async fn FtpPlatform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
+pub async fn FtpPlatform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub impl @platform.Platform for FtpPlatform
+
+pub(all) struct FtpPlatformConfig {
+  platform : String
+  addr : String
+  user : String
+  password : String
+  domain : String?
+  timeout_ms : Int
+}
+pub fn FtpPlatformConfig::new(String, String, String, String, domain? : String?, timeout? : Int) -> Self
+
+// Type aliases
+
+// Traits

@@ -4,5 +4,7 @@ members = [
   "./platform-local",
   "./platform-s3",
   "./platform-qiniu",
+  "./platform-ftp",
   "./verify",
+  "./examples",
 ]

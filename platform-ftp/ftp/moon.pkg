@@ -1,0 +1,17 @@
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "PaiGack/ftp" @ftplib,
+  "moonbitlang/async/io",
+}
+
+// 黑盒用例要么调端口方法（同步那几族不需要运行时），要么调 `async fn` 的拒绝档，
+// 所以测试侧要 async 运行时；`@ftp` 是本包在 blackbox 里的名字。
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage-ftp/ftp",
+  "moonbitlang/async",
+  "moonbitlang/core/encoding/utf8",
+} for "test"
+
+supported_targets = "wasm+native"

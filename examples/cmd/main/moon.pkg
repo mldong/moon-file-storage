@@ -1,0 +1,24 @@
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-hutool/http" @transport,
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-file-storage/storage",
+  "mldong/moon-file-storage-s3/s3",
+  "mldong/moon-file-storage-local/local",
+  "mldong/moon-file-storage-recorder-file/file" @record,
+  "mldong/moon-s3/s3" @sdk,
+  "mldong/moon-kodo/auth" @kodoauth,
+  "mldong/moon-kodo/config" @kodoconfig,
+  "mldong/moon-kodo/kodo",
+  "mldong/moon-file-storage-qiniu/qiniu",
+  "mldong/moon-file-storage-ftp/ftp",
+  "mldong/moon-s3/sigv4",
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/async/io",
+  "moonbitlang/core/encoding/utf8",
+}
+
+pkgtype(kind: "executable")
+
+supported_targets = "wasm+native"
