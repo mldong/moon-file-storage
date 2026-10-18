@@ -1,0 +1,49 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-oss/oss"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct OssPlatform {
+  // private fields
+}
+pub async fn OssPlatform::abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub fn OssPlatform::capabilities(Self) -> @model.Capabilities
+pub fn OssPlatform::close(Self) -> Unit
+pub async fn OssPlatform::complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
+pub fn OssPlatform::config(Self) -> OssPlatformConfig
+pub async fn OssPlatform::delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn OssPlatform::download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+pub async fn OssPlatform::exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn OssPlatform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub async fn OssPlatform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn OssPlatform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
+pub async fn OssPlatform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub fn OssPlatform::name(Self) -> String
+pub fn OssPlatform::new(OssPlatformConfig) -> Self
+pub fn OssPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub async fn OssPlatform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn OssPlatform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn OssPlatform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
+pub async fn OssPlatform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
+pub async fn OssPlatform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub impl @platform.Platform for OssPlatform
+
+pub(all) struct OssPlatformConfig {
+  platform : String
+  bucket : String
+  domain : String?
+  client : @mldong/moon-oss/oss.Client
+}
+
+// Type aliases
+
+// Traits

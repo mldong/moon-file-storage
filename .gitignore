@@ -5,3 +5,8 @@ moon_meta.json
 *.wasm
 .env
 .env.*
+
+# 本地联调用的临时 workspace：把还没发版的隔壁 mldong/moon-oss 挂成 member。
+# moon-oss 上注册表后删掉这一份，platform-oss 的 pin 就自动落到注册表那一份；
+# 它不进公开仓——CI 的检出里没有 ../../moon-oss 这个目录。
+platform-oss/moon.work
