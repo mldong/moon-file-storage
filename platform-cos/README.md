@@ -96,9 +96,11 @@ moon add mldong/moon-file-storage-cos
 - `bucket` 给的是 COS 的**长命名** `<Name>-<APPID>`：appid 就在桶名里，配置面没有单独的
   appid 项，少了那一截本地就拒（拼出来的 host 永远指不到任何桶，与其拿一句服务端
   `NoSuchBucket` 不如当场响）。
-- `domain` 必须是 SDK 那个虚主机前缀（`https://<bucket>.cos.<region>.myqcloud.com`），
-  或**已在桶侧备案并绑好证书**的自定义域名。原生签名默认把 `Host` 算进去，换域名那条
-  URL 当场就废；没备案的 CNAME 连不上（实测 400 `UserCnameInvalid`、证书 SAN 不覆盖）。
+- `domain` 目前只支持 SDK 那个虚主机前缀（`https://<bucket>.cos.<region>.myqcloud.com`）。
+  自定义域名那一侧实测过两半：备案之后 80 端口能路由进桶（签该 `Host` 的 GET 回 200），但
+  **443 的证书名还盖不住**（SAN 是 `*.cos.<region>.myqcloud.com`），而本 SDK 只拼 `https://`；
+  且预签名串默认绑 host，换域名就废——只有签 `sign_host=false` 的那条能跨域名用，而这一档
+  还没端上公开面。证书绑好之后要不要把 `domain` 开到自定义域，是一个要动 SDK 的独立改动。
   没给 `domain` 就在发出任何请求之前拒——私有桶的地址不是能打开的链接。
 - **canned ACL 这一族报 true**：`x-cos-acl: public-read` 被收下、匿名 GET 真取回字节。
   但对象级 `public-read-write` 端点回 400 `InvalidArgument`（对象预设只有 `default`／

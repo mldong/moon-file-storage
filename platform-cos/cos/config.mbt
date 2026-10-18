@@ -15,9 +15,11 @@ pub(all) struct CosPlatformConfig {
   bucket : String
   /// 拼 `FileInfo.url`、`get_file` 反解 key 的域名。**不给就响亮拒绝**：私有桶的
   /// 虚主机地址不是"能打开的链接"，编一条出来等于往记录里放一条打不开的地址。
-  /// 它必须是 SDK 那个虚主机前缀（`https://<桶>.cos.<region>.myqcloud.com`）或指回同一个桶
-  /// 且**已在桶侧备案**的自定义域名——原生签名默认把 `Host` 算进去，没备案的域名连不上，
-  /// 备案与证书是 owner 那侧的事（阶段 H 卡 §1 第三条与 §7 第 4 条读数）。
+  /// 它必须是 SDK 那个虚主机前缀（`https://<桶>.cos.<region>.myqcloud.com`）。自定义域名这一位
+  /// 现在还不能顶：备案之后 80 端口能路由进桶（签该 `Host` 的 GET 实测回 200），但 443 的证书名
+  /// 盖不住那个域名（SAN 是 `*.cos.<region>.myqcloud.com`），而本 SDK 只拼 `https://`；
+  /// 预签名串又默认绑 `Host`（只有 `sign_host=false` 那条能跨域名用，尚未端上公开面）。
+  /// 读数在阶段 H 卡 §2.4 的 M4／M5 两行；证书绑好之后要不要放开这一位，是要动 SDK 的独立改动。
   domain : String?
   client : @sdk.Client
 }
