@@ -100,7 +100,7 @@ jobs:
           ! grep -q "Warning" check.txt
 
   publish:
-    name: Publish the seven modules to mooncakes
+    name: Publish the modules to mooncakes
     needs: verify
     # 判据是单数 'tag'：写成 'tags' 会让 tag 推送的整个 publish job 被 skip，而 workflow 结论
     # 照旧 success（moon-token 的 v0.1.7 就是这么静默漏发过一次）。下面第一步把三个值打进 log。
@@ -115,7 +115,7 @@ jobs:
         run: |
           echo "event_name=$GITHUB_EVENT_NAME ref=$GITHUB_REF ref_type=$GITHUB_REF_TYPE"
           echo "publish input=$PUBLISH_INPUT"
-          for m in core recorder-file platform-local platform-s3 platform-qiniu platform-ftp platform-oss verify; do
+          for m in core recorder-file platform-local platform-s3 platform-qiniu platform-ftp platform-oss platform-cos verify; do
             echo "  $m = $(sed -nE 's/^version = "([^"]+)".*/\1/p' "$m/moon.mod" | head -1)"
           done
 
@@ -180,13 +180,19 @@ jobs:
       - name: Publish platform-oss
         run: bash .github/scripts/publish-if-absent.sh platform-oss mldong/moon-file-storage-oss
 
+      - name: Publish platform-cos
+        run: bash .github/scripts/publish-if-absent.sh platform-cos mldong/moon-file-storage-cos
+
+      # 顺序是硬的：verify 的 moon.mod 里 pin 着每一块适配层，发布自检**从注册表**解析它们，
+      # 所以适配层必须先进注册表，verify 才发得出去——platform-cos 排在 verify 前面是这条规矩，
+      # 不是排版。
       - name: Publish verify (contract suite)
         run: bash .github/scripts/publish-if-absent.sh verify mldong/moon-file-storage-verify
 
-      # 用户那条腿：只认"装得到"。空工程逐个 `moon add` 七件（不给版本号⇒由注册表解析），
+      # 用户那条腿：只认"装得到"。空工程逐个 `moon add`（不给版本号⇒由注册表解析），
       # 再把 pin 打进 log，最后拿刚装上的那份真编译真跑一条纯函数断言。
       # 为什么不用 `import { "..." }`：这个版本的 moon.mod 拒绝无版本号的 registry 依赖。
-      - name: Consumer leg — install all seven from the registry and run one
+      - name: Consumer leg — install every module from the registry and run one
         run: |
           export MOON_HOME="$HOME/.moon"
           moon update
@@ -202,6 +208,8 @@ jobs:
                    mldong/moon-file-storage-s3 \
                    mldong/moon-file-storage-qiniu \
                    mldong/moon-file-storage-ftp \
+                   mldong/moon-file-storage-oss \
+                   mldong/moon-file-storage-cos \
                    mldong/moon-file-storage-verify; do
             a=1
             until moon add "$m"; do
