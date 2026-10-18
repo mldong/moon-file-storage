@@ -208,5 +208,8 @@ jobs:
             echo "$m 安装所用尝试次数：$a / 3" >> "$GITHUB_STEP_SUMMARY"
           done
           echo "解析到的 pin：" >> "$GITHUB_STEP_SUMMARY"
-          sed -nE 's/.*"(mldong\/moon-file-storage[^"]+)".*/  \1/p' moon.mod | tee -a "$GITHUB_STEP_SUMMARY"
+          # 取不含用户名的片段：`mldong` 正是 MOON_USERNAME 这个 secret，GH 会在日志里把它遮成
+          # ***，用整串正则回读要么被遮要么抄回来就是坏模式（moon-s3 那条就因此恒空过）。
+          grep -oE 'moon-file-storage[a-z-]*@[0-9.]+' moon.mod | sed 's/^/  /' \
+            | tee -a "$GITHUB_STEP_SUMMARY"
           moon test --target wasm --no-render
