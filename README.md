@@ -31,11 +31,14 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 本机磁盘 | 自研适配 | 本仓 | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ✗ | ☑ | ☑ | ✗ | ✗ |
 | S3 兼容端点 | 自研 SDK | [moon-s3](https://github.com/mldong/moon-s3) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ✗ ① | ☑ |
-| 七牛 / S3 兼容端点 | s3 协议 | [moon-s3](https://github.com/mldong/moon-s3) | ☐ ② | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
-| 七牛 / 原生 Kodo | 自研 SDK | [moon-kodo](https://github.com/mldong/moon-kodo) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ③ | ☑ | ☑ | ✗ | ☑ |
-| FTP | 第三方件 | [PaiGack/moonbit_ftp](https://github.com/PaiGack/moonbit_ftp) | ☑ ④ | ☑ | ☑ | ☑ | ☑ | ✗ | ✗ | ✗ | ☑ | ✗ | ✗ |
+| 七牛 / 原生 Kodo | 自研 SDK | [moon-kodo](https://github.com/mldong/moon-kodo) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ② | ☑ | ☑ | ✗ | ☑ |
+| FTP | 第三方件 | [PaiGack/moonbit_ftp](https://github.com/PaiGack/moonbit_ftp) | ☑ ③ | ☑ | ☑ | ☑ | ☑ | ✗ | ✗ | ✗ | ☑ | ✗ | ✗ |
 | 阿里云 OSS | 待开发 | 待开发 | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
 | 腾讯云 COS | 待开发 | 待开发 | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
+
+七牛**不列**"走 S3 兼容层"那一行：这条路实测不通——写与桶级列举一律 403，而同一批请求打到不存在的桶
+回 `NoSuchBucket`（说明兼容层认这些操作，403 是授权层的决定，不是协议没实现），读与预签名则正常应答；
+换虚主机寻址结果一样。七牛按原生 Kodo 那一行走。判据与逐档读数记在设计方案的能力表与本仓台账里。
 
 角标说明：
 
@@ -43,11 +46,9 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
    `NotImplemented`，而同一请求换错密钥回 403——拒的是这个操作，不是请求形状或签名。适配层按端点
    声明能力（`supports_acl`），关着就在发出请求之前 `NotSupported`；换成真支持 canned ACL 的端点，
    接入方把开关打开，那一格才改记 ☑。
-2. 七牛的 S3 兼容端点整行记 ☐ 而不是 ✗：实测判死过——区域是 `cn-south-1`、签名确被校验，但桶级列举
-   403，而 CDN 上确存的键答 `NoSuchKey`。判死不写成"不支持"，因为那是端点行为而不是协议射程。
-3. 原生 Kodo 只签 GET（参照实现如此）；PUT 那一档由上传令牌承担（`Auth::upload_token`），
+2. 原生 Kodo 只签 GET（参照实现如此）；PUT 那一档由上传令牌承担（`Auth::upload_token`），
    不是预签名 URL——所以这一格给 ☑ 而不同 S3 那行的两个动词。
-4. FTP 这行的 ☑ 记的是"本地跑绿"，不是"已接入"：载体库把连接的本机地址当成对端地址存
+3. FTP 这行的 ☑ 记的是"本地跑绿"，不是"已接入"：载体库把连接的本机地址当成对端地址存
    （[PaiGack/moonbit_ftp#1](https://github.com/PaiGack/moonbit_ftp/issues/1)），非自环服务端上数据通道
    拨回客户机自己；本轮靠适配层硬钉 `disable_epsv` + `trust_pasv_ip` 借来可用性，SSRF 守卫因此退化。
    上游修好、这对开关摘掉、同一份正文复跑绿之后，这行才改记接入完成。三个 ✗ 是 FTP 的协议射程——
@@ -56,11 +57,13 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 还有一条判据上的更正值得留在表边：共享正文一度用 `!same_copy || !same_move` 把复制与移动捆在同一个
 断言臂里，只声明其中一族的平台会被误判成"拒绝姿势不对"；现在按能力位逐族走。
 
-另有两条验证通道不在这张表里，住的地方也不同：按能力位全声称"没有"的那条在本仓
-（`verify/refuse_contract`，把 ✗ 一侧的拒绝姿势钉住）；收 canned ACL 写入与虚主机寻址的那两档在
-[`moon-s3`](https://github.com/mldong/moon-s3) 仓的 live 测试里（`S3_VHL_*` 与 `S3_VHOST_*` 两组 env）。
-那两个端点是一次性夹具：不起它们时这两档打 `SKIP IS NOT A PASS`；canned ACL 的 ☑ 一侧此前在同一条
-moto 夹具上取过三档读回，要复现得自己把那个夹具起起来。
+还有几条验证通道不在这张表里，住的地方也不同：按能力位全声称"没有"的那条在本仓
+（`verify/refuse_contract`，把 ✗ 一侧的拒绝姿势钉住）。拒写 canned ACL 的那条与按 Host 分桶寻址的那条
+住在 [`moon-s3`](https://github.com/mldong/moon-s3) 仓的 live 测试里，各自一组 env
+（`S3_ACL_REFUSE_*` 与 `S3_VHL_*`）——它们现在**每轮 CI 都真跑**：那条仓的 job 会下载一台一次性 MinIO
+进程并起在 `MINIO_DOMAIN=localhost` 上。只剩"公网可达的虚主机端点"那一档（`S3_VHOST_*`）仍只能本机跑，
+不起对应端点时它打 `SKIP IS NOT A PASS`；canned ACL 的 ☑ 一侧（收写入的端点）在本仓契约里，
+读 `S3_ACL_*` 三个变量，CI 不带凭据 ⇒ 也是响亮跳过。
 
 ## 最小用法
 
