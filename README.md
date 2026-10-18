@@ -19,6 +19,8 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | `mldong/moon-file-storage-verify` | 那份平台契约正文，新平台照着写一条腿 |
 | [`mldong/moon-s3`](https://github.com/mldong/moon-s3) | S3 客户端与 Signature V4 签名（独立仓） |
 | [`mldong/moon-kodo`](https://github.com/mldong/moon-kodo) | 七牛 Kodo 原生协议客户端：上传令牌、两族请求签名、表单与分块上传、对象族（独立仓） |
+| [`mldong/moon-oss`](https://github.com/mldong/moon-oss) | 阿里云 OSS 原生协议客户端：V4 签名、虚主机寻址、对象族／分片／预签名／ACL（独立仓） |
+| [`mldong/moon-cos`](https://github.com/mldong/moon-cos) | 腾讯 COS 原生协议客户端：`q-sign-*` 签名、虚主机寻址、对象族／分片／预签名／原生 ACL（独立仓） |
 
 ## 集成平台进度
 
@@ -35,7 +37,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | 七牛 Kodo | 自研 SDK | [moon-kodo](https://github.com/mldong/moon-kodo) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ② | ☑ | ☑ | ✗ | ☑ |
 | FTP | 第三方件 | [PaiGack/moonbit_ftp](https://github.com/PaiGack/moonbit_ftp) | ☑ ③ | ☑ | ☑ | ☑ | ☑ | ✗ | ✗ | ✗ | ☑ | ✗ | ✗ |
 | 阿里云 OSS | 自研 SDK | [moon-oss](https://github.com/mldong/moon-oss) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ④ | ☑ | ☑ | ✗ ⑤ | ☑ |
-| 腾讯云 COS | 待开发 | 待开发 | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 腾讯云 COS | 自研 SDK | [moon-cos](https://github.com/mldong/moon-cos) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ⑥ | ☑ | ☑ | ☑ ⑦ | ☑ |
 
 角标说明：
 
@@ -58,6 +60,18 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
    之前就 `NotSupported`，不拿一条服务端 403 冒充"这次请求失败"。
    同一条腿还量出：`HEAD` 打不存在的键**只回状态码 404、没有 XML 正文**，判"不存在"因此看状态码。
 
+6. COS 那一格两档也都真跑过（免凭据 GET 回 200 并逐字节相同、按签好的 PUT 直传回 200 且
+   `HEAD` 读得回同一尺寸），但与 OSS 那行多两条限定：预签名串**绑域名**——原生默认把 `Host`
+   算进签名，签虚主机那条换到自定义域名上取当场 403，只有不签 `Host` 的那条能跨域名用，
+   而后者还没端上公开面；有效期**没有上限档**（实测 604801 秒照样签得出），本地只拒
+   "窗口本身不成立"，不替端点自创一个顶。
+7. COS 的 ACL 记 ☑ 与 OSS 那格正相反，凭的是两发实测：写 `public-read` 之后匿名 GET 真回
+   200、改回 `private` 之后同一发回 403——所以这格兑得了现，不在接入层预先 `NotSupported`。
+   但**对象级 `public-read-write` 端点不收**（400 `InvalidArgument`，原文还把 valid 拼成
+   `invliad`），三档 canned 在 COS 的对象预设里只兑两档；这一档照原样透出服务端错误，
+   不在本地猜档位。同一条腿也量到 `HEAD` 打不存在的键只回 404、无正文、`TraceId` 不在场，
+   判"不存在"与 OSS 那格同一把尺（只看状态码）。
+
 还有一条判据上的更正值得留在表边：共享正文一度用 `!same_copy || !same_move` 把复制与移动捆在同一个
 断言臂里，只声明其中一族的平台会被误判成"拒绝姿势不对"；现在按能力位逐族走。
 
@@ -70,6 +84,10 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 OSS 这条腿的 live 档住在 [`moon-oss`](https://github.com/mldong/moon-oss) 仓（一组 `OSS_*` env，
 CI 每轮真打真桶），本仓 `verify/oss_contract` 那份是同一篇正文换载体——CI 不带凭据时它响亮 SKIP，
 带齐时（本机 `scripts/moonfs-gate-env.sh`）走完整篇并当场拒掉"无令牌／改签名／改有效期"三发 403。
+COS 这条腿同形：live 档住在 [`moon-cos`](https://github.com/mldong/moon-cos) 仓（一组 `COS_*` env，
+CI 每轮真打真桶），本仓 `verify/cos_contract` 是同一篇正文换载体；`COS_DOMAIN` **故意不是 secret**——
+自定义域名备案后 80 端口能路由进桶，但证书名还盖不住那个域名，而原生签名默认绑 `Host`，
+所以腿用虚主机派生的域名，env 里给了也只响亮记一笔长度。
 读 `S3_ACL_*` 三个变量，CI 不带凭据 ⇒ 也是响亮跳过。
 
 ## 最小用法
