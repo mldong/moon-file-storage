@@ -20,6 +20,8 @@ import {
   "mldong/moon-oss@0.1.0",
   "mldong/moon-file-storage-ftp@0.1.1",
   "mldong/moon-file-storage-oss@0.1.0",
+  "mldong/moon-cos@0.1.0",
+  "mldong/moon-file-storage-cos@0.1.0",
   "moonbitlang/async@0.22.4",
 }
 

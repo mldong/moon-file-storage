@@ -10,3 +10,7 @@ moon_meta.json
 # moon-oss 上注册表后删掉这一份，platform-oss 的 pin 就自动落到注册表那一份；
 # 它不进公开仓——CI 的检出里没有 ../../moon-oss 这个目录。
 platform-oss/moon.work
+# COS 同一条路，且现在是两处：platform-cos 自己跑离线用例，verify 跑那条腿都要读隔壁未发版的 moon-cos。
+# moon-cos 上注册表后这两份一起删掉，pin 自动落到注册表那一份（CI 的检出里没有 ../../moon-cos 这个目录）。
+platform-cos/moon.work
+verify/moon.work

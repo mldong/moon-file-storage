@@ -14,7 +14,7 @@ REPO=$(pwd -W 2>/dev/null || pwd)
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/moonfs-readme-check.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
 
-MODULES=(core platform-local platform-s3 platform-qiniu platform-ftp platform-oss recorder-file verify)
+MODULES=(core platform-local platform-s3 platform-qiniu platform-ftp platform-oss platform-cos recorder-file verify)
 CHECK="$WORK/readme_check"
 mkdir -p "$CHECK"
 
@@ -36,6 +36,7 @@ HUTOOL=$(sed -nE 's/.*"mldong\/moon-hutool@([^"]+)".*/\1/p' core/moon.mod | head
 S3PIN=$(sed -nE 's/.*"mldong\/moon-s3@([^"]+)".*/\1/p' platform-s3/moon.mod | head -1)
 KODOPIN=$(sed -nE 's/.*"mldong\/moon-kodo@([^"]+)".*/\1/p' platform-qiniu/moon.mod | head -1)
 OSSPIN=$(sed -nE 's/.*"mldong\/moon-oss@([^"]+)".*/\1/p' platform-oss/moon.mod | head -1)
+COSPIN=$(sed -nE 's/.*"mldong\/moon-cos@([^"]+)".*/\1/p' platform-cos/moon.mod | head -1)
 # EXTRA_MEMBERS 是发布前那条跨仓联调路：邻居模块进了工作区就不再往 import 里写注册表 pin，
 # 否则同一个模块会出现两条依赖（工作区成员与注册表各一）。
 EM_NAMES=""
@@ -56,13 +57,14 @@ done
               "platform-qiniu:mldong/moon-file-storage-qiniu" \
               "platform-ftp:mldong/moon-file-storage-ftp" \
               "platform-oss:mldong/moon-file-storage-oss" \
+              "platform-cos:mldong/moon-file-storage-cos" \
               "recorder-file:mldong/moon-file-storage-recorder-file" \
               "verify:mldong/moon-file-storage-verify"; do
     d=${pair%%:*}; pkg=${pair#*:}
     v=$(sed -nE 's/^version = "([^"]+)".*/\1/p' "$REPO/$d/moon.mod" | head -1)
     echo "  \"$pkg@$v\","
   done
-  for pair in "mldong/moon-s3@$S3PIN" "mldong/moon-kodo@$KODOPIN" "mldong/moon-oss@$OSSPIN"; do
+  for pair in "mldong/moon-s3@$S3PIN" "mldong/moon-kodo@$KODOPIN" "mldong/moon-oss@$OSSPIN" "mldong/moon-cos@$COSPIN"; do
     name=${pair%%@*}
     case " $EM_NAMES " in
       *" $name "*) ;;
@@ -86,7 +88,7 @@ repo, check = sys.argv[1], sys.argv[2]
 files = ["README.md"] + [
     os.path.join(m, "README.md")
     for m in ("core", "platform-local",
-              "platform-s3", "platform-qiniu", "platform-ftp", "platform-oss", "recorder-file", "verify")
+              "platform-s3", "platform-qiniu", "platform-ftp", "platform-oss", "platform-cos", "recorder-file", "verify")
 ]
 # alias -> 包路径；抽出来的代码里出现过 @alias. 才引，多引一个包对包本身就是 unused_package。
 ALIASES = [
@@ -100,6 +102,11 @@ ALIASES = [
     ("ossconfig", "mldong/moon-oss/config"),
     ("osserr", "mldong/moon-oss/error"),
     ("oss", "mldong/moon-file-storage-oss/oss"),
+    ("cossdk", "mldong/moon-cos/cos"),
+    ("cosauth", "mldong/moon-cos/auth"),
+    ("cosconfig", "mldong/moon-cos/config"),
+    ("coserr", "mldong/moon-cos/error"),
+    ("cos", "mldong/moon-file-storage-cos/cos"),
     ("sigv4", "mldong/moon-s3/sigv4"),
     ("kodo", "mldong/moon-kodo/kodo"),
     ("kodoauth", "mldong/moon-kodo/auth"),
