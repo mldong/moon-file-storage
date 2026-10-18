@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-verify"
 
-version = "0.1.1"
+version = "0.1.2"
 
 license = "Apache-2.0"
 
@@ -17,7 +17,9 @@ import {
   "mldong/moon-file-storage-qiniu@0.1.1",
   "mldong/moon-kodo@0.1.1",
   "mldong/moon-s3@0.1.2",
+  "mldong/moon-oss@0.1.0",
   "mldong/moon-file-storage-ftp@0.1.1",
+  "mldong/moon-file-storage-oss@0.1.0",
   "moonbitlang/async@0.22.4",
 }
 

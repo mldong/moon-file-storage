@@ -14,6 +14,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | `mldong/moon-file-storage-s3` | S3 与 S3 兼容端点的后端适配 |
 | `mldong/moon-file-storage-qiniu` | 七牛 Kodo 的后端适配 |
 | `mldong/moon-file-storage-ftp` | FTP 后端适配（长连接自拨、`..` 与 CR/LF 在拨号前拒） |
+| `mldong/moon-file-storage-oss` | 阿里云 OSS 的后端适配（原生 V4 签名与虚主机寻址；canned ACL 那一族报 false） |
 | `mldong/moon-file-storage-recorder-file` | 把上传记录落成本机 JSON Lines |
 | `mldong/moon-file-storage-verify` | 那份平台契约正文，新平台照着写一条腿 |
 | [`mldong/moon-s3`](https://github.com/mldong/moon-s3) | S3 客户端与 Signature V4 签名（独立仓） |
@@ -33,7 +34,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | S3 兼容端点 | 自研 SDK | [moon-s3](https://github.com/mldong/moon-s3) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ✗ ① | ☑ |
 | 七牛 Kodo | 自研 SDK | [moon-kodo](https://github.com/mldong/moon-kodo) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ② | ☑ | ☑ | ✗ | ☑ |
 | FTP | 第三方件 | [PaiGack/moonbit_ftp](https://github.com/PaiGack/moonbit_ftp) | ☑ ③ | ☑ | ☑ | ☑ | ☑ | ✗ | ✗ | ✗ | ☑ | ✗ | ✗ |
-| 阿里云 OSS | 待开发 | 待开发 | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
+| 阿里云 OSS | 自研 SDK | [moon-oss](https://github.com/mldong/moon-oss) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ④ | ☑ | ☑ | ✗ ⑤ | ☑ |
 | 腾讯云 COS | 待开发 | 待开发 | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ | ☐ |
 
 角标说明：
@@ -49,6 +50,13 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
    拨回客户机自己；本轮靠适配层硬钉 `disable_epsv` + `trust_pasv_ip` 借来可用性，SSRF 守卫因此退化。
    上游修好、这对开关摘掉、同一份正文复跑绿之后，这行才改记接入完成。三个 ✗ 是 FTP 的协议射程——
    参照实现同样只给 `sameMove`。
+4. OSS 那一格两档都真跑过：免凭据 GET 回 200，按签好的 PUT 直传也回 200 并读得回尺寸——
+   不像 Kodo 那行只有 GET 是真的。
+5. OSS 的 ACL 记 ✗ 有两条实测：`x-oss-object-acl: public-read` 被桶侧拒（403 `AccessDenied /
+   Put public object acl is not allowed`，`private` 才收），而读回来的 grant 是 `default` 不是
+   `private`——契约那三档 canned 名与 OSS 的取值面本就不同名，兑不了现，所以适配层在发出任何请求
+   之前就 `NotSupported`，不拿一条服务端 403 冒充"这次请求失败"。
+   同一条腿还量出：`HEAD` 打不存在的键**只回状态码 404、没有 XML 正文**，判"不存在"因此看状态码。
 
 还有一条判据上的更正值得留在表边：共享正文一度用 `!same_copy || !same_move` 把复制与移动捆在同一个
 断言臂里，只声明其中一族的平台会被误判成"拒绝姿势不对"；现在按能力位逐族走。
@@ -59,6 +67,9 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 （`S3_ACL_REFUSE_*` 与 `S3_VHL_*`）——它们现在**每轮 CI 都真跑**：那条仓的 job 会下载一台一次性 MinIO
 进程并起在 `MINIO_DOMAIN=localhost` 上。只剩"公网可达的虚主机端点"那一档（`S3_VHOST_*`）仍只能本机跑，
 不起对应端点时它打 `SKIP IS NOT A PASS`；canned ACL 的 ☑ 一侧（收写入的端点）在本仓契约里，
+OSS 这条腿的 live 档住在 [`moon-oss`](https://github.com/mldong/moon-oss) 仓（一组 `OSS_*` env，
+CI 每轮真打真桶），本仓 `verify/oss_contract` 那份是同一篇正文换载体——CI 不带凭据时它响亮 SKIP，
+带齐时（本机 `scripts/moonfs-gate-env.sh`）走完整篇并当场拒掉"无令牌／改签名／改有效期"三发 403。
 读 `S3_ACL_*` 三个变量，CI 不带凭据 ⇒ 也是响亮跳过。
 
 ## 最小用法

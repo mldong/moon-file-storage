@@ -5,6 +5,7 @@ members = [
   "./platform-s3",
   "./platform-qiniu",
   "./platform-ftp",
+  "./platform-oss",
   "./verify",
   "./examples",
 ]

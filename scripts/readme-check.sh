@@ -14,7 +14,7 @@ REPO=$(pwd -W 2>/dev/null || pwd)
 WORK=$(mktemp -d "${TMPDIR:-/tmp}/moonfs-readme-check.XXXXXX")
 trap 'rm -rf "$WORK"' EXIT
 
-MODULES=(core platform-local platform-s3 platform-qiniu platform-ftp recorder-file verify)
+MODULES=(core platform-local platform-s3 platform-qiniu platform-ftp platform-oss recorder-file verify)
 CHECK="$WORK/readme_check"
 mkdir -p "$CHECK"
 
@@ -35,6 +35,7 @@ HUTOOL=$(sed -nE 's/.*"mldong\/moon-hutool@([^"]+)".*/\1/p' core/moon.mod | head
 # 这条 README 检查因此打在**用户真装得到的那份**上，而不是隔壁仓的源码。
 S3PIN=$(sed -nE 's/.*"mldong\/moon-s3@([^"]+)".*/\1/p' platform-s3/moon.mod | head -1)
 KODOPIN=$(sed -nE 's/.*"mldong\/moon-kodo@([^"]+)".*/\1/p' platform-qiniu/moon.mod | head -1)
+OSSPIN=$(sed -nE 's/.*"mldong\/moon-oss@([^"]+)".*/\1/p' platform-oss/moon.mod | head -1)
 # EXTRA_MEMBERS 是发布前那条跨仓联调路：邻居模块进了工作区就不再往 import 里写注册表 pin，
 # 否则同一个模块会出现两条依赖（工作区成员与注册表各一）。
 EM_NAMES=""
@@ -46,15 +47,22 @@ done
   echo 'version = "0.0.0"'
   echo 'preferred_target = "wasm"'
   echo 'import {'
-  for pkg in mldong/moon-file-storage \
-             mldong/moon-file-storage-local \
-             mldong/moon-file-storage-s3 mldong/moon-file-storage-qiniu \
-             mldong/moon-file-storage-ftp \
-             mldong/moon-file-storage-recorder-file \
-             mldong/moon-file-storage-verify; do
-    echo "  \"$pkg@$VERSION\","
+  # 每个模块的 pin 从它**自己的** moon.mod 现读，不拿 core 的版本号套全仓：一件没发布过
+  # （版本可以停在 0.1.0）而其余已进 0.1.1 时，套同一号会让 workspace 报
+  # "member 覆盖了依赖要求的那一代"——零警告口径下那条警告就把整道门禁钉红。
+  for pair in "core:mldong/moon-file-storage" \
+              "platform-local:mldong/moon-file-storage-local" \
+              "platform-s3:mldong/moon-file-storage-s3" \
+              "platform-qiniu:mldong/moon-file-storage-qiniu" \
+              "platform-ftp:mldong/moon-file-storage-ftp" \
+              "platform-oss:mldong/moon-file-storage-oss" \
+              "recorder-file:mldong/moon-file-storage-recorder-file" \
+              "verify:mldong/moon-file-storage-verify"; do
+    d=${pair%%:*}; pkg=${pair#*:}
+    v=$(sed -nE 's/^version = "([^"]+)".*/\1/p' "$REPO/$d/moon.mod" | head -1)
+    echo "  \"$pkg@$v\","
   done
-  for pair in "mldong/moon-s3@$S3PIN" "mldong/moon-kodo@$KODOPIN"; do
+  for pair in "mldong/moon-s3@$S3PIN" "mldong/moon-kodo@$KODOPIN" "mldong/moon-oss@$OSSPIN"; do
     name=${pair%%@*}
     case " $EM_NAMES " in
       *" $name "*) ;;
@@ -78,7 +86,7 @@ repo, check = sys.argv[1], sys.argv[2]
 files = ["README.md"] + [
     os.path.join(m, "README.md")
     for m in ("core", "platform-local",
-              "platform-s3", "platform-qiniu", "platform-ftp", "recorder-file", "verify")
+              "platform-s3", "platform-qiniu", "platform-ftp", "platform-oss", "recorder-file", "verify")
 ]
 # alias -> 包路径；抽出来的代码里出现过 @alias. 才引，多引一个包对包本身就是 unused_package。
 ALIASES = [
@@ -87,6 +95,11 @@ ALIASES = [
     ("storage", "mldong/moon-file-storage/storage"),
     ("transport", "mldong/moon-hutool/http"),
     ("sdk", "mldong/moon-s3/s3"),
+    ("osssdk", "mldong/moon-oss/oss"),
+    ("ossauth", "mldong/moon-oss/auth"),
+    ("ossconfig", "mldong/moon-oss/config"),
+    ("osserr", "mldong/moon-oss/error"),
+    ("oss", "mldong/moon-file-storage-oss/oss"),
     ("sigv4", "mldong/moon-s3/sigv4"),
     ("kodo", "mldong/moon-kodo/kodo"),
     ("kodoauth", "mldong/moon-kodo/auth"),

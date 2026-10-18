@@ -9,11 +9,11 @@
 ```moonbit
 async test "能力位报 false 的那一族就地拒绝；预签名是本地算出来的，一条请求都不发" {
   let transport : &@transport.Transport = @transport.AsyncHttpTransport::new()
-  let client = @sdk.Client::new(
-    @config.Config::new(
+  let client = @osssdk.Client::new(
+    @ossconfig.Config::new(
       "https://oss-cn-zhangjiakou.example.invalid",
       "cn-zhangjiakou",
-      @auth.Credentials::new("ak", "sk"),
+      @ossauth.Credentials::new("ak", "sk"),
     ),
     transport,
   )
@@ -65,19 +65,18 @@ async test "能力位报 false 的那一族就地拒绝；预签名是本地算�
 moon add mldong/moon-file-storage-oss
 ```
 
-本机开发期不是这一条：`mldong/moon-oss` 还没上注册表，而 `moon.mod` 的 `import` 只收
-"注册表＋版本"这一种依赖（路径依赖现读报错
-`moon.mod only supports versioned registry dependencies in import`），所以隔壁那份
-`moon.work` 用 `members` 把 `../../moon-oss` 与 `../core` 挂进来——这是临时的本地 pin，
-`moon-oss` 发版后整份删掉，`moon.mod` 里那行 `"mldong/moon-oss@0.1.0"` 一个字都不用改。
-本模块也还没进仓根的 `moon.work`（那是另一件事）。
+`mldong/moon-oss` 已在注册表上，本模块的 `moon.mod` 就直接钉它那一代。开发期曾经靠一份
+本地 `moon.work` 把未发布的隔壁仓挂成 member（`moon.mod` 的 `import` 只收"注册表＋版本"
+这一种依赖，路径依赖现读报错 `moon.mod only supports versioned registry dependencies in
+import`），发版后那份已删。
 
 ## 用之前要知道的几件事
 
-- `domain` 给的是这个桶对外的访问前缀，且必须是 SDK 那个虚主机地址（或指回同一个桶的
-  CDN 域名）：`presigned_url` 回的是 SDK 按自家 endpoint 拼的串，两处不一致时
-  "预签名 URL 以 domain 开头"这一档会红。没给 `domain` 就响亮拒绝——私有桶的地址不是
-  能打开的链接，编一条出来等于往记录里放一条打不开的地址。
+- `domain` 必须是 SDK 自己那个虚主机前缀 `https://<桶>.oss-<区域>.aliyuncs.com`：
+  V4 的签名是照着这条资源路径算的，`presigned_url` 回的自然也是它。契约里"预签名 URL
+  以 domain 开头"那一档因此把 CDN 域名挡在外面——本轮实测两条：虚主机那条免凭据 GET
+  回 200，CDN 那条 TLS 证书过不了校验（绕过后拿到的是 OSS 原生 `AccessDenied`），
+  也从没按 CNAME 量过签名。没给 `domain` 就响亮拒绝：私有桶的地址不是能打开的链接。
 - **canned ACL 这一族报 false**：`x-oss-object-acl: public-read` 被桶侧拒（403
   `AccessDenied / Put public object acl is not allowed`），`private` 才收，而读回来的
   grant 是 `default` 不是 `private`。所以 `set_file_acl` 在发出任何请求之前就抛

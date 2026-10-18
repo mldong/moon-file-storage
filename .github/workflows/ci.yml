@@ -36,8 +36,8 @@ jobs:
     name: Check / Build / Test (wasm + native)
     runs-on: ubuntu-latest
     env:
-      EXPECTED_TESTS: "56"
-      EXPECTED_SKIPS: "5"
+      EXPECTED_TESTS: "68"
+      EXPECTED_SKIPS: "6"
     steps:
       - uses: actions/checkout@v4
 
@@ -112,7 +112,7 @@ jobs:
         run: |
           echo "event_name=$GITHUB_EVENT_NAME ref=$GITHUB_REF ref_type=$GITHUB_REF_TYPE"
           echo "publish input=$PUBLISH_INPUT"
-          for m in core recorder-file platform-local platform-s3 platform-qiniu platform-ftp verify; do
+          for m in core recorder-file platform-local platform-s3 platform-qiniu platform-ftp platform-oss verify; do
             echo "  $m = $(sed -nE 's/^version = "([^"]+)".*/\1/p' "$m/moon.mod" | head -1)"
           done
 
@@ -173,6 +173,9 @@ jobs:
       # PaiGack/ftp，消费方装得到、也能照 verify 的契约自己写腿；不发它反而让 verify 的依赖闭包缺角。
       - name: Publish platform-ftp
         run: bash .github/scripts/publish-if-absent.sh platform-ftp mldong/moon-file-storage-ftp
+
+      - name: Publish platform-oss
+        run: bash .github/scripts/publish-if-absent.sh platform-oss mldong/moon-file-storage-oss
 
       - name: Publish verify (contract suite)
         run: bash .github/scripts/publish-if-absent.sh verify mldong/moon-file-storage-verify
