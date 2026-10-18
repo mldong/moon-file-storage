@@ -12,8 +12,8 @@ description = "Alibaba Cloud OSS platform adapter for moon-file-storage"
 // 兑现（moon.mod 的 import 不收路径依赖）。发版后不用改这里，删掉那份 `moon.work`
 // 即可——版本号写在这儿的形状就是用户真装得到的那一份。
 import {
-  "mldong/moon-hutool@0.1.5",
-  "mldong/moon-file-storage@0.1.0",
+  "mldong/moon-hutool@0.1.6",
+  "mldong/moon-file-storage@0.1.1",
   "mldong/moon-oss@0.1.0",
   "moonbitlang/async@0.22.4",
 }
