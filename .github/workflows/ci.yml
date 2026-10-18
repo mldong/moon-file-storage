@@ -36,8 +36,11 @@ jobs:
     name: Check / Build / Test (wasm + native)
     runs-on: ubuntu-latest
     env:
-      EXPECTED_TESTS: "68"
-      EXPECTED_SKIPS: "6"
+      # 现读，不是推算：从仓根跑 `moon test --target wasm -j 1 --no-render`（不带凭据）量出来的
+      # 两条数——第八件 OSS 那代替是 68／6，加上 platform-cos 的离线 12 档与第九条腿各一档之后
+      # 是 81／7。这条线再加腿时要重新跑一遍再改，别照着上一行加。
+      EXPECTED_TESTS: "81"
+      EXPECTED_SKIPS: "7"
     steps:
       - uses: actions/checkout@v4
 
