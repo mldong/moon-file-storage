@@ -74,12 +74,12 @@ fn transport_kind(error : @transport.TransportError) -> String {
 /// 造这一条腿的全部件：凭据 → 配置（区域即主机，COS 没有独立 endpoint 这一位）→ SDK 客户端
 /// → 端口。域名**不接受 `COS_DOMAIN`**，理由在 2026-10-18 当晚改过一次，这里记终局那版：
 /// owner 把自定义域名在桶侧备案之后，80 端口确实路由进桶了（签 `Host: <自定义域>` 的 GET
-/// 回 200 并取回正文，匿名私有回 403——读数在阶段 H 卡 §2.4 的 M4），**但 443 还不行**：
+/// 回 200 并取回正文，匿名私有回 403），**但 443 还不行**：
 /// 证书是 `CN=*.cos.<region>.myqcloud.com`，SAN 盖不住那个名，握手直接报 `SEC_E_WRONG_PRINCIPAL`
 /// （0x80090322）；而本 SDK 只拼 `https://`，所以切过去的第一发就红在 TLS 上。
 /// 第二道坎是签名本身：原生默认把 `Host` 算进签名的头块（`moon-cos/auth/sign.mbt` 白名单
 /// 第一项就是 host），实测签虚主机的那条预签名换到自定义域上取直接 403，只有 `sign_host=false`
-/// 现签的串能跨域名用（M5）——而这一档还没端上 `cos` 包的公开面。
+/// 现签的串能跨域名用——而这一档还没端上 `cos` 包的公开面。
 ///  ⇒ 这一腿用 SDK 自己拼得出的虚主机那一条（与签名同源，"预签名 URL 以 domain 开头"那一档
 ///  才不会自己跟自己红）。env 里给了就响亮记一笔长度，别让它静默失效。
 fn build(
@@ -337,7 +337,7 @@ async fn signed_get_proof(rig : Rig, bucket : String, prefix : String) -> Unit {
 ///|
 /// ACL 那一族在 COS 上**兑得了现**（`capabilities().acl == true`，与 OSS 那条腿在接入层就
 /// `NotSupported` 不同）：`platform-cos` 真去调 `PUT /<key>?acl` + `x-cos-acl`。契约正文只断
-/// "声称能做就不许拒"，所以这里把两件事各自问一遍，读数进台账：
+/// "声称能做就不许拒"，所以这里把两件事各自问一遍，读数打进输出：
 /// ① 写 `public-read` 之后匿名 GET 真回 200（2026-10-18 现读）；
 /// ② 对象级 `public-read-write` 那一档端点收不收——现读是 400 `InvalidArgument`，
 ///    落在"收下"或"拒下"两档之内就只记读数，落到两档之外才算红（同一纪律见 `moon-cos`

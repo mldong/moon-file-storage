@@ -19,7 +19,7 @@ pub(all) struct CosPlatformConfig {
   /// 现在还不能顶：备案之后 80 端口能路由进桶（签该 `Host` 的 GET 实测回 200），但 443 的证书名
   /// 盖不住那个域名（SAN 是 `*.cos.<region>.myqcloud.com`），而本 SDK 只拼 `https://`；
   /// 预签名串又默认绑 `Host`（只有 `sign_host=false` 那条能跨域名用，尚未端上公开面）。
-  /// 读数在阶段 H 卡 §2.4 的 M4／M5 两行；证书绑好之后要不要放开这一位，是要动 SDK 的独立改动。
+  /// 证书绑好之后要不要放开这一位，是一个要动 SDK 公开面的独立改动。
   domain : String?
   client : @sdk.Client
 }
