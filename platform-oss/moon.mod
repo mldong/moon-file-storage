@@ -22,11 +22,4 @@ readme = "README.md"
 
 repository = "https://github.com/mldong/moon-file-storage"
 
-keywords = [
-  "moonbit",
-  "file-storage",
-  "aliyun",
-  "oss",
-  "upload",
-  "presigned",
-]
+keywords = [ "moonbit", "file-storage", "aliyun", "oss", "upload", "presigned" ]
