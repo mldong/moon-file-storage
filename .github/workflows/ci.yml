@@ -42,14 +42,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # 现读，不是推算：本机 2026-10-21 从仓根跑 `moon test --target wasm -j 1 --no-render`
-      # 量到的总数 = **145**（这一档的工作区形状含影子 member `../moon-obs` 自带那 48 条，见下面
+      # 量到的总数 = **146**（这一档的工作区形状含影子 member `../moon-obs` 自带那 49 条，见下面
       # 那一步；platform-obs 自己 15 条离线档也算在内）。10-19 那行 134 是"moon-obs 还没带请求层
-      # 重发件"时代的读数，那 11 条差全部落在影子 member 里（37 → 48）。
+      # 重发件"时代的读数：重发件带 11 条、它那判据的离线正反对照再带 1 条（37 → 48 → 49）。
       # 老账：81 是"仓内不含 OBS 两件"时代、133 是 OBS 落地前。别再拿上一行加增量：
       # 这条线每次加包、每次给 SDK 补档都要重跑一遍再改。
-      # ⇒ I6 撤掉 moon.work 里 `"../moon-obs"` 那条本地 member 时，这个数字要重测（−48），
+      # ⇒ I6 撤掉 moon.work 里 `"../moon-obs"` 那条本地 member 时，这个数字要重测（−49），
       #   同时删掉下面"取影子 member"那一步与跳过预算表里的 shadow 一行。
-      EXPECTED_TESTS: "145"
+      EXPECTED_TESTS: "146"
     steps:
       - uses: actions/checkout@v4
 
