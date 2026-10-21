@@ -53,13 +53,13 @@ pub(all) struct Fixture {
 
 type Sink
 pub async fn Sink::write(Self, &@io.Data) -> Unit
-pub async fn Sink::write_once(Self, Bytes, offset~ : Int, len~ : Int) -> Int
+pub async fn Sink::write_once(Self, Bytes, offset~ : Int32, len~ : Int32) -> Int32
 pub async fn Sink::write_reader(Self, &@io.Reader) -> Unit
 pub impl @io.Writer for Sink
 
 type SpotSink
 pub async fn SpotSink::write(Self, &@io.Data) -> Unit
-pub async fn SpotSink::write_once(Self, Bytes, offset~ : Int, len~ : Int) -> Int
+pub async fn SpotSink::write_once(Self, Bytes, offset~ : Int32, len~ : Int32) -> Int32
 pub async fn SpotSink::write_reader(Self, &@io.Reader) -> Unit
 pub impl @io.Writer for SpotSink
 

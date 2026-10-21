@@ -29,14 +29,14 @@ pub async fn Service::exists(Self, @model.FileInfo) -> Bool raise @model.Storage
 pub async fn Service::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
 pub async fn Service::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn Service::list_files(Self, String, String, String, String?) -> @model.FileListing? raise @model.StorageError
-pub async fn Service::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub async fn Service::list_parts(Self, @model.FileInfo, Int32) -> @model.PartPage raise @model.StorageError
 pub async fn Service::move_file(Self, @model.FileInfo, @model.FileInfo, mode? : @model.MoveMode) -> @model.FileInfo raise @model.StorageError
 pub fn Service::new(Array[&@platform.Platform], &@recorder.Recorder) -> Self
 pub fn Service::platform_names(Self) -> Array[String]
-pub fn Service::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String? raise @model.StorageError
+pub fn Service::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int32) -> String? raise @model.StorageError
 pub async fn Service::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo raise @model.StorageError
 pub async fn Service::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Bool raise @model.StorageError
-pub async fn Service::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub async fn Service::upload_part(Self, @model.FileInfo, Int32, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
 
 // Type aliases
 

@@ -26,15 +26,15 @@ pub async fn OssPlatform::exists(Self, @model.FileInfo) -> Bool raise @model.Sto
 pub async fn OssPlatform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
 pub async fn OssPlatform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn OssPlatform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
-pub async fn OssPlatform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub async fn OssPlatform::list_parts(Self, @model.FileInfo, Int32) -> @model.PartPage raise @model.StorageError
 pub fn OssPlatform::name(Self) -> String
 pub fn OssPlatform::new(OssPlatformConfig) -> Self
-pub fn OssPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub fn OssPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int32) -> String raise @model.StorageError
 pub async fn OssPlatform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn OssPlatform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn OssPlatform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
 pub async fn OssPlatform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
-pub async fn OssPlatform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub async fn OssPlatform::upload_part(Self, @model.FileInfo, Int32, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
 pub impl @platform.Platform for OssPlatform
 
 pub(all) struct OssPlatformConfig {

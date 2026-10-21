@@ -100,7 +100,7 @@ pub(all) struct FileListing {
 pub(all) struct FilePartInfo {
   platform : String
   upload_id : String
-  part_number : Int
+  part_number : Int32
   size : Int64
   etag : String
 } derive(Eq, ToJson, @json.FromJson)
@@ -147,7 +147,7 @@ pub fn MoveMode::not_equal(Self, Self) -> Bool
 pub(all) struct PartPage {
   parts : Array[FilePartInfo]
   is_truncated : Bool
-  next_part_number_marker : Int?
+  next_part_number_marker : Int32?
 }
 
 pub(all) enum PresignMethod {

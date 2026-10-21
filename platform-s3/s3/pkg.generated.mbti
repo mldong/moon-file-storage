@@ -26,15 +26,15 @@ pub async fn S3Platform::exists(Self, @model.FileInfo) -> Bool raise @model.Stor
 pub async fn S3Platform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
 pub async fn S3Platform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn S3Platform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
-pub async fn S3Platform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub async fn S3Platform::list_parts(Self, @model.FileInfo, Int32) -> @model.PartPage raise @model.StorageError
 pub fn S3Platform::name(Self) -> String
 pub fn S3Platform::new(S3PlatformConfig) -> Self
-pub fn S3Platform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub fn S3Platform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int32) -> String raise @model.StorageError
 pub async fn S3Platform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn S3Platform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn S3Platform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
 pub async fn S3Platform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
-pub async fn S3Platform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub async fn S3Platform::upload_part(Self, @model.FileInfo, Int32, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
 pub impl @platform.Platform for S3Platform
 
 pub(all) struct S3PlatformConfig {

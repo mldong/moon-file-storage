@@ -33,15 +33,15 @@ pub async fn LocalPlatform::exists(Self, @model.FileInfo) -> Bool raise @model.S
 pub async fn LocalPlatform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
 pub async fn LocalPlatform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn LocalPlatform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
-pub async fn LocalPlatform::list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+pub async fn LocalPlatform::list_parts(Self, @model.FileInfo, Int32) -> @model.PartPage raise @model.StorageError
 pub fn LocalPlatform::name(Self) -> String
 pub fn LocalPlatform::new(LocalConfig) -> Self
-pub fn LocalPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+pub fn LocalPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int32) -> String raise @model.StorageError
 pub async fn LocalPlatform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn LocalPlatform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
 pub async fn LocalPlatform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
 pub async fn LocalPlatform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
-pub async fn LocalPlatform::upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub async fn LocalPlatform::upload_part(Self, @model.FileInfo, Int32, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
 pub impl @platform.Platform for LocalPlatform
 
 // Type aliases

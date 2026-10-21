@@ -24,11 +24,11 @@ pub(open) trait Platform {
   async fn delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
   async fn download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
   async fn init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
-  async fn upload_part(Self, @model.FileInfo, Int, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
-  async fn list_parts(Self, @model.FileInfo, Int) -> @model.PartPage raise @model.StorageError
+  async fn upload_part(Self, @model.FileInfo, Int32, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+  async fn list_parts(Self, @model.FileInfo, Int32) -> @model.PartPage raise @model.StorageError
   async fn complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
   async fn abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
-  fn presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int) -> String raise @model.StorageError
+  fn presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int32) -> String raise @model.StorageError
   async fn same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
   async fn same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
   async fn list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
