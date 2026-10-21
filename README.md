@@ -21,6 +21,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | [`mldong/moon-kodo`](https://github.com/mldong/moon-kodo) | 七牛 Kodo 原生协议客户端：上传令牌、两族请求签名、表单与分块上传、对象族（独立仓） |
 | [`mldong/moon-oss`](https://github.com/mldong/moon-oss) | 阿里云 OSS 原生协议客户端：V4 签名、虚主机寻址、对象族／分片／预签名／ACL（独立仓） |
 | [`mldong/moon-cos`](https://github.com/mldong/moon-cos) | 腾讯 COS 原生协议客户端：`q-sign-*` 签名、虚主机寻址、对象族／分片／预签名／原生 ACL（独立仓） |
+| [`mldong/moon-obs`](https://github.com/mldong/moon-obs) | 华为 OBS 原生协议客户端：V4 签名（头名钉 `x-amz-*`）、虚主机寻址唯一一档、对象族／分片／预签名／ACL（独立仓） |
 
 ## 集成平台进度
 
