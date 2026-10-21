@@ -1,0 +1,49 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mldong/moon-file-storage-obs/obs"
+
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "moonbitlang/async/io",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+pub struct ObsPlatform {
+  // private fields
+}
+pub async fn ObsPlatform::abort_multipart(Self, @model.FileInfo) -> Unit raise @model.StorageError
+pub fn ObsPlatform::capabilities(Self) -> @model.Capabilities
+pub fn ObsPlatform::close(Self) -> Unit
+pub async fn ObsPlatform::complete_multipart(Self, @model.FileInfo, Array[@model.FilePartInfo]) -> @model.FileInfo raise @model.StorageError
+pub fn ObsPlatform::config(Self) -> ObsPlatformConfig
+pub async fn ObsPlatform::delete(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn ObsPlatform::download(Self, @model.FileInfo, &@io.Writer) -> Unit raise @model.StorageError
+pub async fn ObsPlatform::exists(Self, @model.FileInfo) -> Bool raise @model.StorageError
+pub async fn ObsPlatform::get_file(Self, String) -> @model.FileInfo? raise @model.StorageError
+pub async fn ObsPlatform::init_multipart(Self, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn ObsPlatform::list_files(Self, String, String, String?) -> @model.FileListing raise @model.StorageError
+pub async fn ObsPlatform::list_parts(Self, @model.FileInfo, Int32) -> @model.PartPage raise @model.StorageError
+pub fn ObsPlatform::name(Self) -> String
+pub fn ObsPlatform::new(ObsPlatformConfig) -> Self
+pub fn ObsPlatform::presigned_url(Self, @model.FileInfo, @model.PresignMethod, Int32) -> String raise @model.StorageError
+pub async fn ObsPlatform::same_copy(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn ObsPlatform::same_move(Self, @model.FileInfo, @model.FileInfo) -> @model.FileInfo raise @model.StorageError
+pub async fn ObsPlatform::save(Self, @model.FileInfo, @model.UploadSource) -> @model.FileInfo? raise @model.StorageError
+pub async fn ObsPlatform::set_file_acl(Self, @model.FileInfo, @model.CannedAcl) -> Unit raise @model.StorageError
+pub async fn ObsPlatform::upload_part(Self, @model.FileInfo, Int32, @model.UploadSource) -> @model.FilePartInfo raise @model.StorageError
+pub impl @platform.Platform for ObsPlatform
+
+pub(all) struct ObsPlatformConfig {
+  platform : String
+  bucket : String
+  domain : String?
+  client : @mldong/moon-obs/obs.Client
+}
+
+// Type aliases
+
+// Traits

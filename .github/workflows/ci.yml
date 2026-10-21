@@ -4,13 +4,18 @@ name: ci
 #
 # 这一步以前是"把三个仓拉到同一条流水里现生成跨仓工作区"，因为 platform-s3／platform-qiniu 引的两个
 # SDK 还没进注册表，pin 装不到东西。2026-10-18 两条 SDK 各发了 v0.1.0，本机现读 `moon install` 已经从
-# 注册表取到 mldong/moon-s3@0.1.0 与 mldong/moon-kodo@0.1.0 ⇒ 切换回"只跑本仓"：档位数字是本仓的 56，
-# 不再是整树的 164。两侧读数都记在台账与 README 的验收口径里。
+# 注册表取到 mldong/moon-s3@0.1.0 与 mldong/moon-kodo@0.1.0 ⇒ 切换回"只跑本仓"。
+# **2026-10-19 又挂回去半条**：第十条腿的两件里，`mldong/moon-obs` 还没上注册表（I6 才发），
+# 而 platform-obs 与 verify 的 pin 只有靠根 moon.work 那条影子 member `"../moon-obs"` 才兑现得了，
+# 所以 verify job 现在先把那仓一起 clone 下来（见"Fetch the sibling SDK clone"那一步）。
+# 档位数字一律现读，不在这里抄：跑一遍 `moon test --target wasm -j 1 --no-render` 拿总数，
+# 读数记在 verify job 的 EXPECTED_TESTS 与 `base-verify/reports/` 的收口报告里。
 #
-# 这条 CI 刻意不带任何凭据（MinIO／七牛真桶／FTP 都不给），所以 5 条 live 腿必然响亮 SKIP：
-# 4 条平台腿（local／s3／qiniu／ftp 各一）＋1 档契约的 acl:true。条数被断言钉死成恰好 5——
-# 少一条就是有人把某档偷偷接上了，多一条是夹具掉了，两种都要红。真端点那档只在本机带凭据跑，
-# 别把这里的绿读成"六条腿都验过"。
+# 这条 CI 刻意不带任何凭据（MinIO／七牛真桶／FTP／OSS／COS／OBS 都不给），所以每条 live 腿都
+# 必然响亮 SKIP：本仓那些平台腿档，外加 s3 那包里 `acl:true` 的一档；工作区里挂着影子 member
+# `../moon-obs` 时，它那仓自己的 live 档也算。行数**不在这里写死**——预算由 Test 步按
+# "每条腿自己的 env 本轮到不到位"算出来，加一条腿就加一行表。
+# 真端点那档只在本机带凭据跑，别把这里的绿读成"十条腿都验过"。
 #
 # 用例条数断言不许删：wasm-gc 那档会静默丢掉异步用例而退出码仍为 0，条数是"真跑过"的唯一证据。
 # 条数与改动同笔更新；对不上先现读再改，严禁拿删断言变绿。
@@ -23,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "检查全绿后是否发布七个模块到 mooncakes（tag 触发默认发布；手动触发需显式勾选）"
+        description: "检查全绿后是否发布本仓各模块到 mooncakes（tag 触发默认发布；手动触发需显式勾选；逐模块清单见 publish job，与磁盘目录由 scripts/module-manifest-check.sh 对照）"
         type: boolean
         default: false
 
@@ -36,13 +41,31 @@ jobs:
     name: Check / Build / Test (wasm + native)
     runs-on: ubuntu-latest
     env:
-      # 现读，不是推算：从仓根跑 `moon test --target wasm -j 1 --no-render`（不带凭据）量出来的
-      # 两条数——第八件 OSS 那代替是 68／6，加上 platform-cos 的离线 12 档与第九条腿各一档之后
-      # 是 81／7。这条线再加腿时要重新跑一遍再改，别照着上一行加。
-      EXPECTED_TESTS: "81"
-      EXPECTED_SKIPS: "7"
+      # 现读，不是推算：本机 2026-10-21 从仓根跑 `moon test --target wasm -j 1 --no-render`
+      # 量到的总数 = **145**（这一档的工作区形状含影子 member `../moon-obs` 自带那 48 条，见下面
+      # 那一步；platform-obs 自己 15 条离线档也算在内）。10-19 那行 134 是"moon-obs 还没带请求层
+      # 重发件"时代的读数，那 11 条差全部落在影子 member 里（37 → 48）。
+      # 老账：81 是"仓内不含 OBS 两件"时代、133 是 OBS 落地前。别再拿上一行加增量：
+      # 这条线每次加包、每次给 SDK 补档都要重跑一遍再改。
+      # ⇒ I6 撤掉 moon.work 里 `"../moon-obs"` 那条本地 member 时，这个数字要重测（−48），
+      #   同时删掉下面"取影子 member"那一步与跳过预算表里的 shadow 一行。
+      EXPECTED_TESTS: "145"
     steps:
       - uses: actions/checkout@v4
+
+      # 影子 member：根 moon.work 里挂着 `"../moon-obs"`，因为 `mldong/moon-obs` 还没上注册表，
+      # `platform-obs/moon.mod` 与 `verify/moon.mod` 的那两条 pin 只有靠本地 member 才兑现得了。
+      # moon 对"workspace 里有一条不存在的 member"是**硬错**（实测 `failed to resolve workspace
+      # member`），所以这一轮 CI 必须把隔壁那仓一起拉下来；拉不到就是红，不静默退化成"少验一包"。
+      # I6 建仓并发布 moon-obs 之后：撤 moon.work 那条 member、删这一步、预算表那行与 EXPECTED_TESTS 一起重测。
+      - name: Fetch the sibling SDK clone (shadow workspace member ../moon-obs)
+        run: |
+          if [ -d ../moon-obs ]; then
+            echo "../moon-obs 已在工作区里（本机联调那一档），不动它"
+          else
+            git clone --depth 1 https://github.com/mldong/moon-obs.git ../moon-obs
+          fi
+          ls -d ../moon-obs
 
       - name: Install MoonBit toolchain (latest)
         run: |
@@ -53,6 +76,12 @@ jobs:
         run: |
           moon version --all
           moon update
+
+      - name: Module manifest cross-check (CI 清单 vs 磁盘模块目录)
+        # 这条判据是上一轮那两处静默漏发的对症药：publish 逐模块清单漏过 platform-cos、
+        # 消费腿清单从阶段 G 起漏过 platform-oss——两种都"verify 全绿、publish success"。
+        # 判据与算法在脚本里（本机同一条命令可跑），这里只负责把它接进门禁。
+        run: bash scripts/module-manifest-check.sh
 
       - name: Check
         run: moon check --target wasm --no-render
@@ -70,14 +99,61 @@ jobs:
           set -o pipefail
           moon test --target wasm -j 1 --no-render | tee wasm-test.txt
           moon test --target native -j 1 --no-render | tee native-test.txt
+
+          # 跳过预算**算出来**，不钉常量：一行 = 一条腿（或一档），字段是
+          # "<打印几行 SKIP>|<门控它的那批 env>"。某条腿的门控 env 本轮真给到位，它就不进预算；
+          # 少任何一个就按它自己打印的行数计。行数现读自该腿 report_skip 的实际打印。
+          legs=$(cat <<'LEG'
+          verify/cos_contract|1|COS_AK COS_SK COS_BUCKET COS_REGION
+          verify/ftp_contract|2|FTP_HOST FTP_USER FTP_PASS
+          verify/oss_contract|1|OSS_AK OSS_SK OSS_BUCKET OSS_REGION
+          verify/qiniu_contract|1|KODO_AK KODO_SK KODO_BUCKET
+          verify/s3_contract|1|S3_LIVE_ENDPOINT S3_LIVE_BUCKET S3_LIVE_REGION S3_LIVE_AK S3_LIVE_SK
+          verify/s3_contract|1|S3_ACL_ENDPOINT S3_ACL_AK S3_ACL_SK
+          verify/obs_contract|1|OBS_AK OBS_SK OBS_BUCKET OBS_REGION
+          LEG
+          )
+          want_skips=0
+          budget=""
+          while IFS='|' read -r pkg lines vars; do
+            [ -n "${pkg// /}" ] || continue
+            missing=""
+            for v in $vars; do
+              [ -n "${!v:-}" ] || missing="$missing $v"
+            done
+            if [ -n "$missing" ]; then
+              want_skips=$((want_skips + lines))
+              budget="$budget\n$pkg 缺:$missing（计 $lines 行）"
+            else
+              budget="$budget\n$pkg 凭据到位（不计）"
+            fi
+          done <<< "$legs"
+          # 影子 member 那一档：../moon-obs 自己那 10 条 live 用例（现读 2026-10-21：`obs/live_test.mbt`
+          # 9 条 + `obs/retry_live_test.mbt` 1 条，缺 OBS_* 时逐条各打一行 SKIP）只有它真挂在工作区里
+          # 才算数；目录不在就说明这一轮 CI 没带上它，不计。SDK 每加一档 live，这个数要跟着重测。
+          if [ -d ../moon-obs ]; then
+            shadow_missing=""
+            for v in OBS_AK OBS_SK OBS_BUCKET OBS_REGION; do
+              [ -n "${!v:-}" ] || shadow_missing="$shadow_missing $v"
+            done
+            if [ -n "$shadow_missing" ]; then
+              want_skips=$((want_skips + 10))
+              budget="$budget\n../moon-obs（影子 member）缺:$shadow_missing（计 10 行）"
+            else
+              budget="$budget\n../moon-obs（影子 member）凭据到位（不计）"
+            fi
+          fi
+
           for f in wasm-test.txt native-test.txt; do
             grep -q "Total tests: $EXPECTED_TESTS, passed: $EXPECTED_TESTS, failed: 0" "$f"
             skips=$(grep -c "SKIP IS NOT A PASS" "$f" || true)
-            echo "$f：$EXPECTED_TESTS 条全绿已核，SKIP 行数=$skips（CI 无凭据，应为 $EXPECTED_SKIPS）"
-            test "$skips" = "$EXPECTED_SKIPS"
+            echo "$f：$EXPECTED_TESTS 条全绿已核，SKIP 行数=$skips（本轮按 secret 到位情况算出的预算=$want_skips）"
+            test "$skips" = "$want_skips"
           done
           {
-            echo "这轮**没有**跑到的 $EXPECTED_SKIPS 条 live 腿（CI 刻意不带凭据）："
+            echo "跳过预算 $want_skips 行是这么算出来的（secret 到位情况）："
+            printf "%b\n" "$budget"
+            echo "这轮**没有**跑到的 live 腿（CI 刻意不带凭据）："
             grep "^SKIP IS NOT A PASS" wasm-test.txt | sort | uniq -c
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -186,6 +262,16 @@ jobs:
       # 顺序是硬的：verify 的 moon.mod 里 pin 着每一块适配层，发布自检**从注册表**解析它们，
       # 所以适配层必须先进注册表，verify 才发得出去——platform-cos 排在 verify 前面是这条规矩，
       # 不是排版。
+      #
+      # DEFER(platform-obs)：**这一轮 publish 清单里就是没有 platform-obs，别以为是抄漏了**——
+      # 撤掉这条推迟的时点是 **I6：与 `mldong/moon-obs` 一起补，别再漏**。它要两件都到位才发得动：
+      #   ① `mldong/moon-obs@0.1.0` 先进注册表（`platform-obs/moon.mod` 的 pin 现在只靠根
+      #      moon.work 那条影子 member 兑现，注册表上没有这一代）；
+      #   ② 顺序仍按拓扑：moon-obs（另一仓）→ platform-obs → verify（verify 的 moon.mod 也 pin
+      #      着这两件，它必须在两者之后发，否则包体自检解析不到）。
+      # 现在加这一步会红在依赖解析（不是红在制品），所以留到 I6；消费腿那一份**已经**挂着
+      # mldong/moon-file-storage-obs，就是为了 I6 忘了补 publish 时当场装不到、响亮红一次。
+      # 判据与这条注释都由 scripts/module-manifest-check.sh 核对（注释丢了它就红）。
       - name: Publish verify (contract suite)
         run: bash .github/scripts/publish-if-absent.sh verify mldong/moon-file-storage-verify
 
@@ -210,6 +296,7 @@ jobs:
                    mldong/moon-file-storage-ftp \
                    mldong/moon-file-storage-oss \
                    mldong/moon-file-storage-cos \
+                   mldong/moon-file-storage-obs \
                    mldong/moon-file-storage-verify; do
             a=1
             until moon add "$m"; do

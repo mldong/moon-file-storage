@@ -1,0 +1,20 @@
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-obs/obs" @sdk,
+  "mldong/moon-obs/error" @obserr,
+  "moonbitlang/async/io",
+  "moonbitlang/core/string",
+}
+
+// 离线用例要能自己造一个 Client（假凭据、桩传输、一条请求都不发）：凭据件与配置件
+// 只在测试侧进来，生产侧只经 `@sdk.Client`。
+import {
+  "mldong/moon-obs/auth",
+  "mldong/moon-obs/config",
+  "mldong/moon-hutool/http" @transport,
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/async",
+} for "test"
+
+supported_targets = "wasm+native"

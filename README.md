@@ -4,8 +4,8 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 `Service`，换后端就是换一个 `Platform`。
 
 依赖面刻意收窄：HTTP 传输用 `mldong/moon-hutool` 的 `http` 包（可注入端口 + 官方
-`moonbitlang/async/http` 薄适配），摘要与日期时间同出一库；S3 与七牛 Kodo 两个协议的客户端
-是本生态位里的自研件，各自独立成仓。
+`moonbitlang/async/http` 薄适配），摘要与日期时间同出一库；各家协议的客户端（S3／七牛 Kodo／
+阿里云 OSS／腾讯 COS／华为 OBS）是本生态位里的自研件，各自独立成仓。
 
 | 模块 | 装什么 |
 |---|---|
@@ -38,6 +38,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | FTP | 第三方件 | [PaiGack/moonbit_ftp](https://github.com/PaiGack/moonbit_ftp) | ☑ ③ | ☑ | ☑ | ☑ | ☑ | ✗ | ✗ | ✗ | ☑ | ✗ | ✗ |
 | 阿里云 OSS | 自研 SDK | [moon-oss](https://github.com/mldong/moon-oss) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ④ | ☑ | ☑ | ✗ ⑤ | ☑ |
 | 腾讯云 COS | 自研 SDK | [moon-cos](https://github.com/mldong/moon-cos) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ⑥ | ☑ | ☑ | ☑ ⑦ | ☑ |
+| 华为云 OBS | 自研 SDK | `moon-obs`（独立仓，尚未建仓） | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ⑧ | ☑ ⑨ | ☑ | ☑ | ☑ ⑩ | ☑ |
 
 角标说明：
 
@@ -72,8 +73,30 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
    不在本地猜档位。同一条腿也量到 `HEAD` 打不存在的键只回 404、无正文、`TraceId` 不在场，
    判"不存在"与 OSS 那格同一把尺（只看状态码）。
 
+8. OBS 的分片下限是 **100KiB**，不是 AWS 那家的 5MiB（真桶实测：非末片 100KiB 过、99KiB 与
+   50KiB 都回 400 `EntityTooSmall`）。契约正文那份用的是 5MiB 一档，本来就在下限之上，所以
+   这条腿不需要为正文改任何参数；那两条边界读数由这条腿自己各量一发（拒的那一发要走端口透出
+   成 `Platform`，不许折叠成"成功"或"不存在"）。
+9. OBS 那一格两档都真跑过（免凭据 GET 回 200 并逐字节相同、按签好的 PUT 直传回 200）。两条限定：
+   有效期 **1..604800 秒**由签名层在本地把关、越界就地 `InvalidInput`（与 COS 那行"没有文档数字"
+   相反）；`Host` 必入签（`X-Amz-SignedHeaders=host`），所以预签名串**绑域名**——自定义域名那一格
+   因此不放开（还有第二条：测试桶的 443 证书没绑那个名，https 撞 TLS 名称不匹配，而本 SDK 只拼
+   `https://`）。"过期窗口"那一格由本条腿现量：**回 403**，但回体里**没有** `expired` 那个词
+   （COS 那家有）——所以断言只钉状态码，不钉文案。
+10. OBS 的 ACL 记 ☑，凭的是三发实测：写 `public-read` 之后匿名 GET 真回 200 且逐字节相等、
+    改回 `private` 之后同一发回 403——**生效且可逆**；原生面**允许匿名请求**（那一发 403 是 ACL
+    的答案，不是 S3 兼容面那种 `400 NotSupportAnonymous`），所以公开读 URL 在原生面是真能打开的
+    链接。对象级 `public-read-write` 这一档 OBS **收**（读回三条 grant），与 COS 的 400 相反；
+    坏取值回 400 `InvalidArgument`，原样透出、不在本地预拒。与 OSS 那格记 ✗ 相反，两家都是各自
+    量出来的，不是照抄同号那一格。
+
 还有一条判据上的更正值得留在表边：共享正文一度用 `!same_copy || !same_move` 把复制与移动捆在同一个
 断言臂里，只声明其中一族的平台会被误判成"拒绝姿势不对"；现在按能力位逐族走。
+
+表上没有"寻址风格"这一列，有一条实测事实只能留在表边：**OBS 只有 virtual-hosted**——path 风格的
+对象请求一律 403 `VirtualHostDomainRequired`（带正文），所以端口不给"寻址风格"开关，SDK 的
+`path_style_url` 本身永远响亮拒绝，`get_file` 收到不属于本平台域名的 URL 在**发出任何请求之前**
+就 `InvalidInput`。
 
 还有几条验证通道不在这张表里，住的地方也不同：按能力位全声称"没有"的那条在本仓
 （`verify/refuse_contract`，把 ✗ 一侧的拒绝姿势钉住）。拒写 canned ACL 的那条与按 Host 分桶寻址的那条
@@ -89,6 +112,11 @@ CI 每轮真打真桶），本仓 `verify/cos_contract` 是同一篇正文换载
 自定义域名备案后 80 端口能路由进桶，但证书名还盖不住那个域名，而原生签名默认绑 `Host`，
 所以腿用虚主机派生的域名，env 里给了也只响亮记一笔长度。
 读 `S3_ACL_*` 三个变量，CI 不带凭据 ⇒ 也是响亮跳过。
+OBS 这条腿同形而**载体仓还没建**：`verify/obs_contract` 是同一篇正文换载体，门控用
+`OBS_AK`／`OBS_SK`／`OBS_BUCKET`／`OBS_REGION` 四项，`OBS_DOMAIN` 与 `COS_DOMAIN` 同一待遇
+（给了也只响亮记一笔长度，理由见表边脚注 ⑨）；`mldong/moon-obs` 那仓的 live 档要等建仓发版之后
+才谈得上"每轮真打真桶"，这一轮它只以工作区里的影子 member 参与门禁（见那份流水线的 clone 那一步），
+所以**第十条腿的真端点证据目前只在带凭据的本机跑上取**。
 
 ## 最小用法
 
@@ -191,10 +219,13 @@ moon add moonbitlang/async
 
 ## 状态
 
-七件走 mooncakes 发布的模块：门面 `mldong/moon-file-storage`、四件平台适配（`-local`／`-s3`／`-qiniu`／`-ftp`）、
-文件记录器 `-recorder-file`、契约套件 `-verify`；`examples` 不发。次序与门禁在同仓
-`.github/workflows/ci.yml` 的 publish job（拓扑序：门面先，`-verify` 最后）。当前代次与依赖 pin 一律现读——
-注册表上该模块的页面，或 `moon add <模块>` 之后 `moon.mod` 回写的那一行，本文件不写死版本号。
+走 mooncakes 发布的是门面 `mldong/moon-file-storage`、各件平台适配、文件记录器 `-recorder-file`
+与契约套件 `-verify`——**具体哪几件、各到哪一代，一律现读**：清单住在 `.github/workflows/ci.yml`
+的 publish job（拓扑序：门面先，`-verify` 最后），而那份清单与磁盘上的模块目录由
+`scripts/module-manifest-check.sh` 逐项对照（上一轮抓到过两处手抄漏项，判据因此不再靠人记）。
+`examples` 不发；`platform-obs` 那一件推迟到 `mldong/moon-obs` 上注册表之后一起补，推迟的理由与
+撤除时点写在 ci.yml 那条 `DEFER(platform-obs)` 注释里。注册表页面，或 `moon add <模块>` 之后
+`moon.mod` 回写的那一行，才是用户真装得到的那一份，本文件不写死版本号。
 
 公共 API 一旦发布就是冻结对象（`Platform` 与 `Recorder` 的方法签名、`Capabilities` 的七个能力位）：
 改形状要前进代次，而且**连注释都要重发才上注册表页面**（发布包根就是模块目录，页面读的是那份 README）。
