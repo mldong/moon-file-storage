@@ -22,9 +22,10 @@ import {
   "mldong/moon-file-storage-oss@0.1.0",
   "mldong/moon-cos@0.1.0",
   "mldong/moon-file-storage-cos@0.1.0",
-  // 第十条腿的两件：`mldong/moon-obs` **还没上注册表**，这一行现在由根 `moon.work` 里
-  // `"../moon-obs"` 那条本地 member 兑现（与 platform-obs/moon.mod 同一条约束，发版前
-  // 这两个 pin 都推不动）。I6 发布 moon-obs 之后不用改这两行，要撤的是那条本地 member。
+  // 第十条腿的两件。`mldong/moon-obs@0.1.0` 已于 2026-10-21 上注册表（那两天它靠根
+  // `moon.work` 里的影子 member `"../moon-obs"` 兑现，同一条约束见 platform-obs/moon.mod）；
+  // `mldong/moon-file-storage-obs@0.1.0` 是本仓的兄弟模块，平时由 workspace member 解析，
+  // **publish 的包体自检从注册表取它** ⇒ 发 verify 必须排在 platform-obs 之后（拓扑序，不是排版）。
   "mldong/moon-obs@0.1.0",
   "mldong/moon-file-storage-obs@0.1.0",
   "moonbitlang/async@0.22.4",

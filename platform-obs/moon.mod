@@ -8,11 +8,11 @@ preferred_target = "wasm"
 
 description = "Huawei Cloud OBS platform adapter for moon-file-storage"
 
-// 这一行按"用户真装得到的那一份"写，但 `mldong/moon-obs` **现在还没上注册表**：
-// 它这一轮由隔壁根 `moon.work` 里 `"../moon-obs"` 那条本地 member 兑现（moon.mod 的
-// import 本来不收路径依赖）。**发版前这个 pin 不能推**——推了 CI 会从注册表解析不到
-// `mldong/moon-obs@0.1.0`。I6 正式发布 `moon-obs` 之后，这一行不用改（版本号写的就是
-// 那一份），要撤的是根 `moon.work` 里那条本地 member。
+// 这一行按"用户真装得到的那一份"写。2026-10-21 起 `mldong/moon-obs@0.1.0` 已在注册表
+// （CI 的消费腿那一档会 `moon add` 它并按装到的那份真编译真跑），所以这一条 pin 不需要
+// 任何本地 member 兑现——根 `moon.work` 里那条影子 member 同日撤掉了。
+// 历史：I4/I5 那两轮它靠 `"../moon-obs"` 挂进来，那时注册表上还没有这一代，推上去会红在
+// 依赖解析；换 SDK 代次时这一行要与 `moon-obs` 仓里的 `version` 同步（接力式 pin，别单改）。
 import {
   "mldong/moon-hutool@0.1.6",
   "mldong/moon-file-storage@0.1.1",

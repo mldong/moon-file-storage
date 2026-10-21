@@ -20,15 +20,11 @@ MODULES=(core platform-local platform-s3 platform-qiniu platform-ftp platform-os
 CHECK="$WORK/readme_check"
 mkdir -p "$CHECK"
 
-# `mldong/moon-obs` 还没上注册表（I6 才发），platform-obs 的那条 pin 只有靠隔壁那份 clone 才
-# 兑现得了——根 moon.work 本来就这么挂。这里同一姿势：本地能找到 ../moon-obs 就自动挂上，
-# CI 由 workflow 先把它 clone 到同层；两处都没有时不静默降级，让它红在解析上并先说清原因。
-AUTO_MEMBERS=""
-SIBLING=$(cd .. && (pwd -W 2>/dev/null || pwd))
-if [ -f "$SIBLING/moon-obs/moon.mod" ]; then
-  AUTO_MEMBERS="$SIBLING/moon-obs"
-fi
-MEMBERS="$AUTO_MEMBERS ${EXTRA_MEMBERS:-}"
+# 曾经有一档 AUTO_MEMBERS：本地找得到 `../moon-obs` 就自动把它挂进这份临时工作区，用来兑现
+# 还没上注册表的那条 pin。2026-10-21 `mldong/moon-obs@0.1.0` 发了版之后这一档**必须没有**：
+# 目录在不在本机就决定 README 验的是源码还是注册表那份，两侧口径会静默分叉（而这道门禁判的
+# 正是"用户抄了能不能跑"）。要挂还没发版的 SDK，一律显式用 EXTRA_MEMBERS。
+MEMBERS="${EXTRA_MEMBERS:-}"
 
 {
   echo 'members = ['

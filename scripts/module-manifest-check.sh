@@ -18,10 +18,11 @@ CI=.github/workflows/ci.yml
 
 # 不发版的目录：可执行示例，发出去只多一个没人 import 的模块（README 的"状态"段同口径）。
 NO_PUBLISH=" examples"
-# 已建好、但这一轮**故意不进 publish 清单**的模块：它 pin 的那件 SDK 还没上注册表，
-# 加了 publish job 会因依赖解析不到而红。撤掉这一档的时点写在 ci.yml 的那条 DEFER 注释里，
-# 下面会核那条注释还在不在——清单能偷偷删，提醒不能偷偷丢。
-DEFER_PUBLISH=" platform-obs"
+# 已建好、但**这一轮故意不进 publish 清单**的模块（它 pin 的那件 SDK 还没上注册表，加了会红在
+# 依赖解析）。撤掉一档的时点必须留在 ci.yml 的 DEFER 注释里，下面核那条注释还在不在——
+# 清单能偷偷删，提醒不能偷偷丢；而反过来，**目录已进了 publish 清单却还挂在这张表上也会红**。
+# 现读：2026-10-21 `mldong/moon-obs@0.1.0` 上注册表后这张表就是空的（历史见 ci.yml）。
+DEFER_PUBLISH=""
 DEFER_MARKER="DEFER(platform-obs)"
 
 in_list() { case " $1 " in *" $2 "*) return 0 ;; *) return 1 ;; esac; }
@@ -104,10 +105,10 @@ for m in $CONS_MODS; do
 done
 
 # 推迟那一档：目录要在、publish 两处不能要、消费腿要先挂着（发版那天同一条腿就真装它），
-# 而且"别再漏"的提醒必须还在 ci.yml 里。
+# 而且"别再漏"的提醒必须还在 ci.yml 里。这张表现在是空的 ⇒ 这一段不跑；往里加一项的规则见上面。
 for d in $DEFER_PUBLISH; do
   in_list "$DISK_DIRS" "$d" || say_fail "推迟清单里的 $d 在磁盘上已不存在（这一档该删掉了）"
-  in_list "$PUB_DIRS" "$d" && say_fail "$d 本轮不该进 publish 清单（它 pin 的 SDK 还没上注册表）"
+  in_list "$PUB_DIRS" "$d" && say_fail "$d 已在 publish 清单里，却还挂在推迟表上（该把它从 DEFER_PUBLISH 摘掉）"
   grep -q -- "$DEFER_MARKER" "$CI" ||
     say_fail "ci.yml 里找不到 $DEFER_MARKER 那条提醒（推迟的理由与撤除时点必须留在原地）"
 done
@@ -116,4 +117,6 @@ if [ -n "$fail" ]; then
   echo "MANIFEST CHECK FAIL：见上面每一条——缺项就是静默漏发，多项就是发一件不存在的东西" >&2
   exit 1
 fi
-echo "MANIFEST CHECK PASS：publish 清单 $(count "$PUB_DIRS") 项 == 磁盘可发布模块 $(count "$WANT_PUB_DIRS") 项；消费腿清单 $(count "$CONS_MODS") 项 == 应装 $(count "$WANT_CONS_MODS") 项；推迟 $(count "$DEFER_PUBLISH") 项已带撤除时点"
+defer_note="推迟 $(count "$DEFER_PUBLISH") 项已带撤除时点"
+[ -n "$(echo "$DEFER_PUBLISH" | tr -d ' ')" ] || defer_note="无推迟项"
+echo "MANIFEST CHECK PASS：publish 清单 $(count "$PUB_DIRS") 项 == 磁盘可发布模块 $(count "$WANT_PUB_DIRS") 项；消费腿清单 $(count "$CONS_MODS") 项 == 应装 $(count "$WANT_CONS_MODS") 项；$defer_note"

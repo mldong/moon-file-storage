@@ -7,7 +7,6 @@ members = [
   "./platform-ftp",
   "./platform-oss",
   "./platform-cos",
-  "../moon-obs",
   "./platform-obs",
   "./verify",
   "./examples",
