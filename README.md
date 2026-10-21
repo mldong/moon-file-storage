@@ -38,7 +38,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | FTP | 第三方件 | [PaiGack/moonbit_ftp](https://github.com/PaiGack/moonbit_ftp) | ☑ ③ | ☑ | ☑ | ☑ | ☑ | ✗ | ✗ | ✗ | ☑ | ✗ | ✗ |
 | 阿里云 OSS | 自研 SDK | [moon-oss](https://github.com/mldong/moon-oss) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ④ | ☑ | ☑ | ✗ ⑤ | ☑ |
 | 腾讯云 COS | 自研 SDK | [moon-cos](https://github.com/mldong/moon-cos) | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ⑥ | ☑ | ☑ | ☑ ⑦ | ☑ |
-| 华为云 OBS | 自研 SDK | `moon-obs`（独立仓，尚未建仓） | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ⑧ | ☑ ⑨ | ☑ | ☑ | ☑ ⑩ | ☑ |
+| 华为云 OBS | 自研 SDK | `moon-obs`（独立仓） | ☑ | ☑ | ☑ | ☑ | ☑ | ☑ ⑧ | ☑ ⑨ | ☑ | ☑ | ☑ ⑩ | ☑ |
 
 角标说明：
 
@@ -112,11 +112,10 @@ CI 每轮真打真桶），本仓 `verify/cos_contract` 是同一篇正文换载
 自定义域名备案后 80 端口能路由进桶，但证书名还盖不住那个域名，而原生签名默认绑 `Host`，
 所以腿用虚主机派生的域名，env 里给了也只响亮记一笔长度。
 读 `S3_ACL_*` 三个变量，CI 不带凭据 ⇒ 也是响亮跳过。
-OBS 这条腿同形而**载体仓还没建**：`verify/obs_contract` 是同一篇正文换载体，门控用
-`OBS_AK`／`OBS_SK`／`OBS_BUCKET`／`OBS_REGION` 四项，`OBS_DOMAIN` 与 `COS_DOMAIN` 同一待遇
-（给了也只响亮记一笔长度，理由见表边脚注 ⑨）；`mldong/moon-obs` 那仓的 live 档要等建仓发版之后
-才谈得上"每轮真打真桶"，这一轮它只以工作区里的影子 member 参与门禁（见那份流水线的 clone 那一步），
-所以**第十条腿的真端点证据目前只在带凭据的本机跑上取**。
+OBS 这条腿同形：live 档住在 [`moon-obs`](https://github.com/mldong/moon-obs) 仓（一组 `OBS_*` env，
+CI 每轮真打真桶），本仓 `verify/obs_contract` 是同一篇正文换载体；`OBS_DOMAIN` 与 `COS_DOMAIN`
+同一待遇（给了也只响亮记一笔长度，理由见表边脚注 ⑨）。本仓这条 CI 不带凭据，所以第十条腿在这里
+只有"响亮 SKIP"那一档——真端点证据由 `moon-obs` 自己那轮 CI 与带凭据的本机跑提供。
 
 ## 最小用法
 
@@ -223,9 +222,10 @@ moon add moonbitlang/async
 与契约套件 `-verify`——**具体哪几件、各到哪一代，一律现读**：清单住在 `.github/workflows/ci.yml`
 的 publish job（拓扑序：门面先，`-verify` 最后），而那份清单与磁盘上的模块目录由
 `scripts/module-manifest-check.sh` 逐项对照（上一轮抓到过两处手抄漏项，判据因此不再靠人记）。
-`examples` 不发；`platform-obs` 那一件推迟到 `mldong/moon-obs` 上注册表之后一起补，推迟的理由与
-撤除时点写在 ci.yml 那条 `DEFER(platform-obs)` 注释里。注册表页面，或 `moon add <模块>` 之后
-`moon.mod` 回写的那一行，才是用户真装得到的那一份，本文件不写死版本号。
+`examples` 不发；曾推迟过的 `platform-obs` 已在 2026-10-21 随 `mldong/moon-obs@0.1.0` 上注册表后
+补进清单，那张推迟表现在是空的——脚本对"目录已进 publish 清单却还挂在推迟表上"也会红，
+所以撤除推迟那一档不会漏。注册表页面，或 `moon add <模块>` 之后 `moon.mod` 回写的那一行，
+才是用户真装得到的那一份，本文件不写死版本号。
 
 公共 API 一旦发布就是冻结对象（`Platform` 与 `Recorder` 的方法签名、`Capabilities` 的七个能力位）：
 改形状要前进代次，而且**连注释都要重发才上注册表页面**（发布包根就是模块目录，页面读的是那份 README）。
