@@ -71,39 +71,49 @@ fn transport_kind(error : @transport.TransportError) -> String {
 }
 
 ///|
-/// 造这一条腿的全部件：凭据 → 配置（区域即主机，COS 没有独立 endpoint 这一位）→ SDK 客户端
-/// → 端口。域名**不接受 `COS_DOMAIN`**，理由在 2026-10-18 当晚改过一次，这里记终局那版：
-/// owner 把自定义域名在桶侧备案之后，80 端口确实路由进桶了（签 `Host: <自定义域>` 的 GET
-/// 回 200 并取回正文，匿名私有回 403），**但 443 还不行**：
-/// 证书是 `CN=*.cos.<region>.myqcloud.com`，SAN 盖不住那个名，握手直接报 `SEC_E_WRONG_PRINCIPAL`
-/// （0x80090322）；而本 SDK 只拼 `https://`，所以切过去的第一发就红在 TLS 上。
-/// 第二道坎是签名本身：原生默认把 `Host` 算进签名的头块（`moon-cos/auth/sign.mbt` 白名单
-/// 第一项就是 host），实测签虚主机的那条预签名换到自定义域上取直接 403，只有 `sign_host=false`
-/// 现签的串能跨域名用——而这一档还没端上 `cos` 包的公开面。
-///  ⇒ 这一腿用 SDK 自己拼得出的虚主机那一条（与签名同源，"预签名 URL 以 domain 开头"那一档
-///  才不会自己跟自己红）。env 里给了就响亮记一笔长度，别让它静默失效。
+/// 造这一条腿的全部件：凭据 → 配置 → SDK 客户端 → 端口。域名有**两档**，各由一条 test 量：
+///
+/// - 默认档（`custom_domain=false`）：域名取 SDK 自己拼得出的虚主机
+///   `https://<桶名>.cos.<区域>.myqcloud.com`，与签名同源的 `Host`。契约正文走这一档——
+///   那里"预签名 URL 以 domain 开头"那一档才不会自己跟自己红。
+/// - 寻址档（`custom_domain=true`）：用 `COS_DOMAIN` 那个**已在桶侧绑定本桶**的自定义域名，
+///   经 `Config::with_domain` 造配置，host 逐字用域名、scheme 是 **http**。为什么不是 https：
+///   证书仍是 `CN=*.cos.<区域>.myqcloud.com`，SAN 盖不住这个名，握手直接 `SEC_E_WRONG_PRINCIPAL`
+///   （0x80090322）——那是桶侧没绑证书，不是签名问题。为什么不能再拼桶名：`<桶名>.<域名>`
+///   连 DNS 都不解析（真桶实测）。env 里没给 `COS_DOMAIN` 时这一档响亮 SKIP，不蒙着跑。
 fn build(
   ak : String,
   sk : String,
   bucket : String,
   region : String,
+  custom_domain~ : Bool = false,
 ) -> (Rig, String) raise @coserr.CosError {
   let transport : &@transport.Transport = @transport.AsyncHttpTransport::new()
   let credentials = @cosauth.Credentials::new(ak, sk)
-  let config = @cosconfig.Config::new(region, credentials)
-  let client = @sdk.Client::new(config, transport)
-  let host = config.host(bucket)
-  let derived = "https://" + host
   let given = @env.get_env_var("COS_DOMAIN").unwrap_or("")
-  if !given.is_empty() {
+  let config = if custom_domain {
+    if given.is_empty() {
+      raise @coserr.CosError::BadParam(
+        "COS_DOMAIN is absent: the addressing arm has no domain to bind",
+      )
+    }
+    @cosconfig.Config::with_domain("http://" + given, region, credentials)
+  } else {
+    @cosconfig.Config::new(region, credentials)
+  }
+  let host = config.host(bucket)
+  let derived = (if custom_domain { "http://" } else { "https://" }) + host
+  if !custom_domain && !given.is_empty() {
     println(
       "COS_DOMAIN supplied (length " +
       given.length().to_string() +
-      ") but not used: 443 still serves CN=*.cos.<region>.myqcloud.com which does not cover this name (TLS SEC_E_WRONG_PRINCIPAL), and this SDK only builds https urls; presigned strings are host-bound unless signed with sign_host=false",
+      ") but not used by this arm: 默认档要与签名的 Host 同源，虚主机那条才是契约正文的地基；" +
+      "自定义域名那一档由寻址档那条 test 专门量（http 通、https 等桶侧证书）",
     )
   }
   println("domain in use: " + derived)
   let domain = derived
+  let client = @sdk.Client::new(config, transport)
   let platform = @cos.CosPlatform::new(@cos.CosPlatformConfig::{
     platform: "cos",
     bucket,
@@ -509,5 +519,69 @@ async test "cos platform walks the shared contract against the real bucket" {
     None => report_skip()
     Some(environment) =>
       run_cos(environment.0, environment.1, environment.2, environment.3)
+  }
+}
+
+///|
+/// 寻址档专用的一条：同一个桶绑定的自定义域名，走 **http**，把预签名那一整套真取回再核一遍。
+/// 它**不冒充**"契约正文换了个载体"——正文量的是平台能力，这一档量的只有寻址与 scheme；
+/// 复用 `signed_get_proof` 是为了让"签名/窗口真在被校验"这三条判据在同一发里也成立。
+async fn run_cos_domain(
+  ak : String,
+  sk : String,
+  bucket : String,
+  region : String,
+) -> Unit {
+  let stamp = @env.get_env_var("COS_RUN_TAG").unwrap_or("0")
+  let prefix = "moonfs-cos-domain-" + stamp
+  let built = build(ak, sk, bucket, region, custom_domain=true) catch {
+    err => fail("cos addressing arm setup: " + cos_text(err))
+  }
+  let rig = built.0
+  let domain = built.1
+  println("寻址档前缀=" + prefix + " 使用的域名=" + domain)
+  // 公开 URL 与预签名串都必须挂在这个域名下（域名档里 host 逐字用，不拼桶名）
+  let key = prefix + "/shape.txt"
+  let info = @model.FileInfo::draft("cos", prefix, "shape.txt", "txt").stamped(@model.Stamp::{
+    platform: None,
+    path: Some(key),
+    url: None,
+    size: None,
+    create_time: None,
+    upload_id: None,
+    upload_status: None,
+    user_metadata: None,
+  })
+  let url = rig.platform.presigned_url(info, @model.PresignMethod::Get, 120) catch {
+    err =>
+      fail("presigned_url on the custom domain raised: " + storage_text(err))
+  }
+  assert_true(url.has_prefix(domain + "/"))
+  // 带签名取回、改签名必拒、过期窗口必拒三条一起走（就是正文里那一份判据）
+  signed_get_proof(rig, bucket, prefix)
+  let left = count_residue(rig.client, bucket, prefix)
+  println("寻址档本轮前缀重列剩余=" + left.to_string())
+  assert_eq(left, 0)
+}
+
+///|
+async test "cos addressing arm: a bound custom domain served over http" {
+  let given = @env.get_env_var("COS_DOMAIN").unwrap_or("")
+  match live_env() {
+    None => report_skip()
+    Some(environment) =>
+      if given.is_empty() {
+        println("SKIP contract/cos addressing arm, COS_DOMAIN not supplied")
+        println(
+          "SKIP IS NOT A PASS: this platform leg was not verified by this run.",
+        )
+      } else {
+        run_cos_domain(
+          environment.0,
+          environment.1,
+          environment.2,
+          environment.3,
+        )
+      }
   }
 }

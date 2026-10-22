@@ -43,11 +43,12 @@ jobs:
     env:
       # 现读，不是推算：本机 2026-10-21 撤掉影子 member 后从仓根跑
       # `moon test --target wasm -j 1 --no-render` 量到的总数 = **97**。
+      # 寻址档那两条（COS／OBS 各一条"给了域名就跑、没给就响亮 SKIP"）把它抬到 **99**。
       # 老账按代次排：81（仓内不含 OBS 两件）→ 133（OBS 落地前）→ 134（第十条腿）→
-      # 146（工作区还挂着 `../moon-obs` 那份 clone，含它自带的 49 条）→ **97**
-      # （`mldong/moon-obs@0.1.0` 已上注册表，影子 member 撤了，那 49 条回到它自己的仓里跑）。
+      # 146（工作区还挂着 `../moon-obs` 那份 clone，含它自带的 49 条）→ 97（影子撤了，
+      # 那 49 条回到它自己的仓里跑）→ 99（10-21 自定义域名那一轮，两条腿各 +1 条）。
       # 别再拿上一行加增量：这条线每次加包、每次给 SDK 补档、每次改工作区形状都要重跑一遍再改。
-      EXPECTED_TESTS: "97"
+      EXPECTED_TESTS: "99"
     steps:
       - uses: actions/checkout@v4
 
@@ -88,13 +89,13 @@ jobs:
           # "<打印几行 SKIP>|<门控它的那批 env>"。某条腿的门控 env 本轮真给到位，它就不进预算；
           # 少任何一个就按它自己打印的行数计。行数现读自该腿 report_skip 的实际打印。
           legs=$(cat <<'LEG'
-          verify/cos_contract|1|COS_AK COS_SK COS_BUCKET COS_REGION
+          verify/cos_contract|2|COS_AK COS_SK COS_BUCKET COS_REGION
           verify/ftp_contract|2|FTP_HOST FTP_USER FTP_PASS
           verify/oss_contract|1|OSS_AK OSS_SK OSS_BUCKET OSS_REGION
           verify/qiniu_contract|1|KODO_AK KODO_SK KODO_BUCKET
           verify/s3_contract|1|S3_LIVE_ENDPOINT S3_LIVE_BUCKET S3_LIVE_REGION S3_LIVE_AK S3_LIVE_SK
           verify/s3_contract|1|S3_ACL_ENDPOINT S3_ACL_AK S3_ACL_SK
-          verify/obs_contract|1|OBS_AK OBS_SK OBS_BUCKET OBS_REGION
+          verify/obs_contract|2|OBS_AK OBS_SK OBS_BUCKET OBS_REGION
           LEG
           )
           want_skips=0

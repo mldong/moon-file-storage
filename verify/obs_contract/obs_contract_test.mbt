@@ -107,30 +107,43 @@ fn transport_kind(error : @transport.TransportError) -> String {
 }
 
 ///|
-/// 造这一条腿的全部件：凭据 → 配置（区域即主机，OBS 的原生端点基址由区域派生）→ SDK 客户端
-/// → 端口。域名**不接受 `OBS_DOMAIN`**，理由与 `platform-cos` 那一格同形而证据是这条腿自己的：
-/// 测试桶的自定义域名 DNS 已解析、80 端口能路由进桶（那一发 403 是 ACL 的答案），**但 443 的
-/// 证书没绑**那个域名（https 撞 TLS 名称不匹配），而本 SDK 只拼 `https://`；再者原生 V4 把
-/// `Host` 算进签名头（`X-Amz-SignedHeaders=host`），签虚主机那条换到自定义域名上取就是另一条
-/// 没签过的地址。⇒ 这一腿用 SDK 自己拼得出的虚主机那一条（与签名同源，契约正文"预签名 URL 以
-/// domain 开头"那一档才不会自己跟自己红）。env 里给了就响亮记一笔长度，别让它静默失效。
+/// 造这一条腿的全部件：凭据 → 配置 → SDK 客户端 → 端口。域名有**两档**，各由一条 test 量：
+///
+/// - 默认档（`custom_domain=false`）：`Config::from_region` 派生原生端点基址，域名取
+///   `<scheme>://<桶名>.<基址>` 那条虚主机，与签名里被算进头块的 `Host` 同源。契约正文走这一档
+///   （"预签名 URL 以 domain 开头"那一档才不会自己跟自己红）。
+/// - 寻址档（`custom_domain=true`）：用 `OBS_DOMAIN` 那个**已在桶侧绑定本桶**的自定义域名，
+///   经 `Config::with_domain` 造配置，host 逐字用域名、scheme 是 **http**。为什么不是 https：
+///   域名解析到华为云 IP 但证书名盖不住它，握手直接失败（同一域名在区域端点侧量到过
+///   `目标主要名称不正确`）——那是桶侧没绑证书，不是签名问题。为什么不能再拼桶名：
+///   `<桶名>.<域名>` 连 DNS 都不解析（真桶实测）。`OBS_DOMAIN` 没给时这一档响亮 SKIP。
 fn build(
   ak : String,
   sk : String,
   bucket : String,
   region : String,
+  custom_domain~ : Bool = false,
 ) -> (Rig, String) raise @obserr.ObsError {
   let transport : &@transport.Transport = @transport.AsyncHttpTransport::new()
   let credentials = @obsauth.Credentials::new(ak, sk)
-  let config = @obsconfig.Config::from_region(region, credentials)
+  let given = @env.get_env_var("OBS_DOMAIN").unwrap_or("")
+  let config = if custom_domain {
+    if given.is_empty() {
+      raise @obserr.ObsError::BadParam(
+        "OBS_DOMAIN is absent: the addressing arm has no domain to bind",
+      )
+    }
+    @obsconfig.Config::with_domain("http://" + given, region, credentials)
+  } else {
+    @obsconfig.Config::from_region(region, credentials)
+  }
   let client = @sdk.Client::new(config, transport)
   let derived = config.scheme_of() + "://" + config.host_of(bucket)
-  let given = @env.get_env_var("OBS_DOMAIN").unwrap_or("")
-  if !given.is_empty() {
+  if !custom_domain && !given.is_empty() {
     println(
       "OBS_DOMAIN supplied (length " +
       given.length().to_string() +
-      ") but not used: the test bucket's custom domain has no certificate bound on 443 (TLS name mismatch) while this SDK only builds https urls, and the native V4 signs Host into the header block so a virtual-hosted string is not valid on another domain",
+      ") but not used by this arm: 默认档要与签名的 Host 同源，虚主机那条才是契约正文的地基；自定义域名那一档由寻址档那条 test 专门量（http 通、https 等桶侧证书）",
     )
   }
   println("domain in use: " + derived)
@@ -944,6 +957,70 @@ async fn run_obs(
   // 主记录 + 分片子记录两份，且分片子记录要被门面清干净（完成与放弃各清一次）
   assert_eq(rows.length(), 2)
   assert_eq(parts.length(), 0)
+}
+
+///|
+
+///|
+/// 寻址档专用的一条：同一个桶绑定的自定义域名走 **http**，把预签名那一整套真取回再核一遍。
+/// 它**不冒充**"契约正文换了个载体"——正文量平台能力，这一档只量寻址与 scheme。
+async fn run_obs_domain(
+  ak : String,
+  sk : String,
+  bucket : String,
+  region : String,
+) -> Unit {
+  let stamp = @env.get_env_var("OBS_RUN_TAG").unwrap_or("0")
+  let prefix = "moonfs-obs-domain-" + stamp
+  let built = build(ak, sk, bucket, region, custom_domain=true) catch {
+    err => fail("obs addressing arm setup: " + obs_text(err))
+  }
+  let rig = built.0
+  let domain = built.1
+  println("寻址档前缀=" + prefix + " 使用的域名=" + domain)
+  // 预签名串必须挂在这个域名下（域名档里 host 逐字用，不拼桶名）
+  let key = prefix + "/shape.txt"
+  let info = @model.FileInfo::draft("obs", prefix, "shape.txt", "txt").stamped(@model.Stamp::{
+    platform: None,
+    path: Some(key),
+    url: None,
+    size: None,
+    create_time: None,
+    upload_id: None,
+    upload_status: None,
+    user_metadata: None,
+  })
+  let url = rig.platform.presigned_url(info, @model.PresignMethod::Get, 120) catch {
+    err =>
+      fail("presigned_url on the custom domain raised: " + storage_text(err))
+  }
+  assert_true(url.has_prefix(domain + "/"))
+  signed_get_proof(rig, bucket, prefix)
+  let left = obs_clean(rig.client, bucket, prefix)
+  println("寻址档本轮前缀清扫后剩余=" + left.to_string())
+  assert_eq(left, 0)
+}
+
+///|
+async test "obs addressing arm: a bound custom domain served over http" {
+  let given = @env.get_env_var("OBS_DOMAIN").unwrap_or("")
+  match live_env() {
+    None => report_skip()
+    Some(environment) =>
+      if given.is_empty() {
+        println("SKIP contract/obs addressing arm, OBS_DOMAIN not supplied")
+        println(
+          "SKIP IS NOT A PASS: this platform leg was not verified by this run.",
+        )
+      } else {
+        run_obs_domain(
+          environment.0,
+          environment.1,
+          environment.2,
+          environment.3,
+        )
+      }
+  }
 }
 
 ///|
