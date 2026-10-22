@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-obs"
 
-version = "0.1.0"
+version = "0.1.1"
 
 license = "Apache-2.0"
 
@@ -14,9 +14,9 @@ description = "Huawei Cloud OBS platform adapter for moon-file-storage"
 // 历史：I4/I5 那两轮它靠 `"../moon-obs"` 挂进来，那时注册表上还没有这一代，推上去会红在
 // 依赖解析；换 SDK 代次时这一行要与 `moon-obs` 仓里的 `version` 同步（接力式 pin，别单改）。
 import {
-  "mldong/moon-hutool@0.1.6",
-  "mldong/moon-file-storage@0.1.1",
-  "mldong/moon-obs@0.1.0",
+  "mldong/moon-hutool@0.1.7",
+  "mldong/moon-file-storage@0.1.2",
+  "mldong/moon-obs@0.1.3",
   "moonbitlang/async@0.22.5",
 }
 
