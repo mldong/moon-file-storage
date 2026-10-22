@@ -10,7 +10,7 @@ description = "File-backed recorder for moon-file-storage"
 
 import {
   "mldong/moon-file-storage@0.1.1",
-  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.5",
 }
 
 readme = "README.md"

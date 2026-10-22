@@ -18,7 +18,7 @@ import {
   "mldong/moon-file-storage-ftp@0.1.1",
   "mldong/moon-s3@0.1.2",
   "mldong/moon-kodo@0.1.1",
-  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.5",
 }
 
 readme = "README.md"

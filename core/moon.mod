@@ -9,7 +9,7 @@ preferred_target = "wasm"
 description = "File storage models, the platform and recorder ports, and the service facade"
 
 import {
-  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.5",
   "mldong/moon-hutool@0.1.6",
 }
 

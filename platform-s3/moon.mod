@@ -12,7 +12,7 @@ import {
   "mldong/moon-hutool@0.1.6",
   "mldong/moon-file-storage@0.1.1",
   "mldong/moon-s3@0.1.2",
-  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.5",
 }
 
 readme = "README.md"

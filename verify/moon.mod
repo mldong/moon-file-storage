@@ -28,7 +28,7 @@ import {
   // **publish 的包体自检从注册表取它** ⇒ 发 verify 必须排在 platform-obs 之后（拓扑序，不是排版）。
   "mldong/moon-obs@0.1.1",
   "mldong/moon-file-storage-obs@0.1.0",
-  "moonbitlang/async@0.22.4",
+  "moonbitlang/async@0.22.5",
 }
 
 readme = "README.md"
