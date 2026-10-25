@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-obs"
 
-version = "0.1.1"
+version = "0.1.2"
 
 license = "Apache-2.0"
 
@@ -16,7 +16,7 @@ description = "Huawei Cloud OBS platform adapter for moon-file-storage"
 import {
   "mldong/moon-hutool@0.1.7",
   "mldong/moon-file-storage@0.1.2",
-  "mldong/moon-obs@0.1.3",
+  "mldong/moon-obs@0.20.0",
   "moonbitlang/async@0.22.5",
 }
 

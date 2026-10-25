@@ -14,10 +14,10 @@ import {
   "mldong/moon-file-storage-local@0.1.2",
   "mldong/moon-file-storage-recorder-file@0.1.2",
   "mldong/moon-file-storage-s3@0.1.2",
-  "mldong/moon-file-storage-qiniu@0.1.2",
+  "mldong/moon-file-storage-qiniu@0.1.3",
   "mldong/moon-file-storage-ftp@0.1.2",
   "mldong/moon-s3@0.1.3",
-  "mldong/moon-kodo@0.1.3",
+  "mldong/moon-kodo@0.20.0",
   "moonbitlang/async@0.22.5",
 }
 
