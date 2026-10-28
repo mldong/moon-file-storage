@@ -4,8 +4,7 @@
 # 判的是"文档写的形状就是用户抄了能跑的东西"。本仓各模块走 source 一档（临时 workspace 的
 # members 指向仓内各模块，清单就是下面 MODULES，与 CI 的 publish／消费腿两份清单由
 # scripts/module-manifest-check.sh 一起对照）；各家 SDK 走注册表一档——pin 从消费它们的模块
-# 现读，装的是用户今天真装得到的那份。**唯一例外是 mldong/moon-obs**：注册表还没有这一代，
-# 靠隔壁那份 clone 挂成 member 兑现（下面 AUTO_MEMBERS 那段），I6 发版后这一档自动并回注册表。
+# 现读，装的是用户今天真装得到的那份（含 mldong/moon-obs，2026-10-21 起在注册表）。
 # EXTRA_MEMBERS 仍可用：SDK 改动还没发版、要先验 README 时把邻居仓挂进工作区。
 #
 # 通过 = 零警告 + failed: 0。警告不许豁免：抽出来的代码是真代码，报警告就是真问题。
@@ -52,11 +51,6 @@ EM_NAMES=""
 for x in $MEMBERS; do
   EM_NAMES="$EM_NAMES $(sed -nE 's/^name = "([^"]+)".*/\1/p' "$x/moon.mod" | head -1)"
 done
-if ! printf '%s' "$EM_NAMES" | grep -q "mldong/moon-obs"; then
-  echo "提示：platform-obs 的 README 那条腿要 mldong/moon-obs@$OBSPIN，而这一代注册表上还没有（I6 才发）。" \
-    "本地/CI 都靠把工作区里现成的 ../moon-obs 挂成 member 来兑现（这一步已自动找过一次）；" \
-    "两处都没有时它会红在依赖解析——那是真红，不是夹具掉了。"
-fi
 {
   echo 'name = "mldong/readme_check"'
   echo 'version = "0.0.0"'

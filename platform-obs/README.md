@@ -89,10 +89,9 @@ async test "没给 domain 就在发出请求之前拒；私有桶的地址不该
 moon add mldong/moon-file-storage-obs
 ```
 
-本机开发期不是这一条：`mldong/moon-obs` 还没上注册表，而 `moon.mod` 的 `import` 只收
-"注册表＋版本"这一种依赖，所以靠根 `moon.work` 把隔壁 `../moon-obs` 挂成 member
-（**发版前这个 pin 不能推**——推了 CI 从注册表解析不到）；`moon-obs` 发布后撤掉那条
-本地 member，`moon.mod` 里那行 `"mldong/moon-obs@0.1.0"` 一个字都不用改。
+`mldong/moon-obs` 已在注册表上，本模块的 `moon.mod` 就直接钉它那一代。开发期曾经靠根
+`moon.work` 把未发布的隔壁仓挂成 member（`moon.mod` 的 `import` 只收"注册表＋版本"
+这一种依赖），发版后那条已撤。
 
 ## 用之前要知道的几件事
 

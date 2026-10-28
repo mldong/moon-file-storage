@@ -107,7 +107,8 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 不起对应端点时它打 `SKIP IS NOT A PASS`；canned ACL 的 ☑ 一侧（收写入的端点）在本仓契约里，
 OSS 这条腿的 live 档住在 [`moon-oss`](https://github.com/mldong/moon-oss) 仓（一组 `OSS_*` env，
 CI 每轮真打真桶），本仓 `verify/oss_contract` 那份是同一篇正文换载体——CI 不带凭据时它响亮 SKIP，
-带齐时（本机 `scripts/moonfs-gate-env.sh`）走完整篇并当场拒掉"无令牌／改签名／改有效期"三发 403。
+带齐时（给进程注入 `OSS_AK`/`OSS_SK`/`OSS_BUCKET`/`OSS_REGION` 四个 env）走完整篇并当场拒掉
+"无令牌／改签名／改有效期"三发 403。
 COS 这条腿同形：live 档住在 [`moon-cos`](https://github.com/mldong/moon-cos) 仓（一组 `COS_*` env，
 CI 每轮真打真桶），本仓 `verify/cos_contract` 是同一篇正文换载体；`COS_DOMAIN` **故意不是 secret**——
 自定义域名备案后 80 端口能路由进桶，但证书名还盖不住那个域名，而原生签名默认绑 `Host`，
@@ -195,9 +196,14 @@ moon add mldong/moon-file-storage-recorder-file
 moon add moonbitlang/async
 ```
 
-接 S3 或七牛再各加一层：`mldong/moon-file-storage-s3`（配 `mldong/moon-s3`）、
-`mldong/moon-file-storage-qiniu`（配 `mldong/moon-kodo`）。代次现读各模块 `moon.mod` 的 `version`。
-本仓自己就是个 `moon.work` 工作区，`moon test --target wasm` 一把跑全部模块。
+接其余五家再各加一层：`mldong/moon-file-storage-s3`（配 `mldong/moon-s3`）、
+`mldong/moon-file-storage-qiniu`（配 `mldong/moon-kodo`）、`mldong/moon-file-storage-oss`（配 `mldong/moon-oss`）、
+`mldong/moon-file-storage-cos`（配 `mldong/moon-cos`）、`mldong/moon-file-storage-obs`（配 `mldong/moon-obs`）。
+代次现读各模块 `moon.mod` 的 `version`。
+本仓自己就是个 `moon.work` 工作区，`moon test --target wasm` 一把跑全部模块；
+可运行示例（零网络，真读写走本机磁盘）：`moon run --target wasm examples/cmd/main`。
+你的包若收到 `... does not declare supported_targets` 警告（依赖的包声明了它），
+在自己的 `moon.pkg` 里补同款一行即可。
 
 ## 新接一个平台
 
