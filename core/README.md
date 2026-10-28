@@ -44,7 +44,8 @@ async test "记录是意图加存储回填的字段，不是调用方自己拼�
   `NotSupported` 拒掉，且要在动手之前拒——发出去收一个端点错误码不算拒绝。
 - 记录落不下去时不撤回已写好的对象：账没落地是看得见的失败。
 - 门面上遇到"这个后端没有这一族"给空值（`None` / `false`），与参考件 x-file-storage
-  （dromara/x-file-storage，Java 生态统一文件存储框架）的
+  （dromara/x-file-storage，Java 生态统一文件存储框架，
+  https://github.com/dromara/x-file-storage）的
   `listFiles` 回 notSupport、预签名回 null、`setFileAcl` 回 false 同形。
 
 ## 装法
@@ -56,16 +57,21 @@ moon add mldong/moon-file-storage-local
 moon add mldong/moon-file-storage-recorder-file
 ```
 
-第三、四条换后端就换件，其余各档逐字 `moon add`（云厂商各档构造 `Platform` 时要传它家客户端，
-客户端库一起 add；构造形状看装上的那份 `.mooncakes/mldong/moon-file-storage-<家>/README.md`）：
+第三、四条换后端就换件，其余各档逐字 `moon add`（云厂商各档＝适配层＋协议客户端两件；构造形状
+看装上的那份 `.mooncakes/mldong/moon-file-storage-<家>/README.md`）：
 
 ```bash
-moon add mldong/moon-file-storage-s3      # 配 mldong/moon-s3
-moon add mldong/moon-file-storage-qiniu   # 配 mldong/moon-kodo
-moon add mldong/moon-file-storage-oss     # 配 mldong/moon-oss
-moon add mldong/moon-file-storage-cos     # 配 mldong/moon-cos
-moon add mldong/moon-file-storage-obs     # 配 mldong/moon-obs
-moon add mldong/moon-file-storage-ftp     # 载体 PaiGack/ftp（依赖自动进）
+moon add mldong/moon-file-storage-s3
+moon add mldong/moon-s3
+moon add mldong/moon-file-storage-qiniu
+moon add mldong/moon-kodo
+moon add mldong/moon-file-storage-oss
+moon add mldong/moon-oss
+moon add mldong/moon-file-storage-cos
+moon add mldong/moon-cos
+moon add mldong/moon-file-storage-obs
+moon add mldong/moon-obs
+moon add mldong/moon-file-storage-ftp      # 载体 PaiGack/ftp，依赖自动进
 ```
 
 记录器也可以按 `Recorder` 端口自实现。代次现读各 `moon.mod`。`moon add` 之后把下面这些 import

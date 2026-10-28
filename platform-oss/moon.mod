@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-oss"
 
-version = "0.1.4"
+version = "0.1.5"
 
 license = "Apache-2.0"
 
@@ -12,7 +12,7 @@ description = "Alibaba Cloud OSS platform adapter for moon-file-storage"
 // 换 SDK 代次时与 `moon-oss` 仓里的 `version` 同步（接力式 pin，别单改）。
 import {
   "mldong/moon-hutool@0.1.7",
-  "mldong/moon-file-storage@0.1.4",
+  "mldong/moon-file-storage@0.1.5",
   "mldong/moon-oss@0.20.0",
   "moonbitlang/async@0.22.5",
 }

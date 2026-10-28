@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-local"
 
-version = "0.1.4"
+version = "0.1.5"
 
 license = "Apache-2.0"
 
@@ -9,7 +9,7 @@ preferred_target = "wasm"
 description = "Local filesystem platform for moon-file-storage"
 
 import {
-  "mldong/moon-file-storage@0.1.4",
+  "mldong/moon-file-storage@0.1.5",
   "mldong/moon-hutool@0.1.7",
   "moonbitlang/async@0.22.5",
 }
