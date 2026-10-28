@@ -200,7 +200,9 @@ moon add moonbitlang/async
 `mldong/moon-file-storage-qiniu`（配 `mldong/moon-kodo`）、`mldong/moon-file-storage-oss`（配 `mldong/moon-oss`）、
 `mldong/moon-file-storage-cos`（配 `mldong/moon-cos`）、`mldong/moon-file-storage-obs`（配 `mldong/moon-obs`）。
 代次现读各模块 `moon.mod` 的 `version`。
-本仓自己就是个 `moon.work` 工作区，`moon test --target wasm` 一把跑全部模块；
+本仓自己就是个 `moon.work` 工作区，`moon test --target wasm` 一把跑全部模块；本地全门禁与 CI
+verify job 同一套：`moon check --target wasm --no-render`、`moon test --target wasm -j 1
+--no-render`、`bash scripts/module-manifest-check.sh`、`bash scripts/readme-check.sh`。
 可运行示例（零网络，真读写走本机磁盘）：`moon run --target wasm examples/cmd/main`。
 你的包若收到 `... does not declare supported_targets` 警告（依赖的包声明了它），
 在自己的 `moon.pkg` 里补同款一行即可。
@@ -218,7 +220,8 @@ moon add moonbitlang/async
   不能应下来却什么也不做。
 - 能力位说的是这套存储有没有这一族，不是这一次调用会不会成功；各家兼容端点的差别由接入方声明。
 - 记不上账不撤回已写好的对象：账没落地是看得见的失败，悄悄删对象是不可见的丢数据。
-- 本机验收全在 wasm 档；native 只 `moon check`，运行证据交流水线。
+- 本机验收全在 wasm 档；native 只 `moon check`，运行证据交流水线（Windows 上 native 构建需要
+  MSVC Build Tools，缺了属环境缺件，不是代码问题）。
 - CI 里没有凭据的那几条腿会打 `SKIP IS NOT A PASS` 并照样过关——**CI 的绿覆盖的是单元档与发布物
   形状，不是真端点**。真端点要在带凭据的环境里按同一份正文另跑一次。
 - 上面这段 `moonbit` 由 `scripts/readme-check.sh` 抽进独立工程真编译真跑，跑不过就是门禁红。
@@ -241,4 +244,6 @@ FTP 那件的进度表状态仍是"载体库未满足接入条件"——包发�
 
 ## 许可
 
-Apache-2.0。
+Apache-2.0。机制与概念层面参考
+[x-file-storage](https://github.com/dromara/x-file-storage)（Java 生态统一文件存储框架，
+同 Apache-2.0）；代码全部原创，未移植源码。
