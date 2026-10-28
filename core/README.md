@@ -26,7 +26,7 @@ async test "记录是意图加存储回填的字段，不是调用方自己拼�
   assert_eq(stamped.platform, "local-1")
   let keyed = @model.object_key("uploads", "a/b.txt")
   assert_eq(keyed, "uploads/a/b.txt")
-  // ACL 只有三档，参考件那种"不认识的 ACL 返回 false"在这里构造不出来。
+  // ACL 只有三档，参考件 x-file-storage 那种"不认识的 ACL 返回 false"在这里构造不出来。
   assert_eq(@model.CannedAcl::PublicRead.header_value(), "public-read")
   assert_true(stamped != draft)
 }
@@ -35,14 +35,16 @@ async test "记录是意图加存储回填的字段，不是调用方自己拼�
 `Service` 把对象族（`save` / `get_file` / `exists` / `download` / `delete`）与五族编排
 （手动分片五步、预签名、同平台复制与移动、单层列举、对象 ACL）都收在一处；后端只提供端口，
 "这件事整做起来是什么样"住在这里。跨平台复制与移动在存储不做同平台优化时走通用路径：把对象
-取回来再传上去。
+取回来再传上去。全部入口的签名（参数与返回的精确形状）在包内 `storage/pkg.generated.mbti`，
+装好后在 `.mooncakes/mldong/moon-file-storage/storage/` 下就能读到。
 
 ## 端口语义
 
 - 能力位说的是这套存储有没有这一族，不是这一次调用会不会成功。声称没有的成员被问到必须以
   `NotSupported` 拒掉，且要在动手之前拒——发出去收一个端点错误码不算拒绝。
 - 记录落不下去时不撤回已写好的对象：账没落地是看得见的失败。
-- 门面上遇到"这个后端没有这一族"给空值（`None` / `false`），与参考件
+- 门面上遇到"这个后端没有这一族"给空值（`None` / `false`），与参考件 x-file-storage
+  （dromara/x-file-storage，Java 生态统一文件存储框架）的
   `listFiles` 回 notSupport、预签名回 null、`setFileAcl` 回 false 同形。
 
 ## 装法
@@ -54,9 +56,21 @@ moon add mldong/moon-file-storage-local
 moon add mldong/moon-file-storage-recorder-file
 ```
 
-第三、四条换后端就换件：另有 `-s3`/`-qiniu`/`-oss`/`-cos`/`-obs`/`-ftp` 各一档；记录器也可以
-按 `Recorder` 端口自实现。代次现读各 `moon.mod`。`moon add` 之后把下面这些 import 写进你的
-`moon.pkg`（MoonBit 的传递依赖不会自动可见，少一条就会报 "containing module is not imported"）：
+第三、四条换后端就换件，其余各档逐字 `moon add`（云厂商各档构造 `Platform` 时要传它家客户端，
+客户端库一起 add；构造形状看装上的那份 `.mooncakes/mldong/moon-file-storage-<家>/README.md`）：
+
+```bash
+moon add mldong/moon-file-storage-s3      # 配 mldong/moon-s3
+moon add mldong/moon-file-storage-qiniu   # 配 mldong/moon-kodo
+moon add mldong/moon-file-storage-oss     # 配 mldong/moon-oss
+moon add mldong/moon-file-storage-cos     # 配 mldong/moon-cos
+moon add mldong/moon-file-storage-obs     # 配 mldong/moon-obs
+moon add mldong/moon-file-storage-ftp     # 载体 PaiGack/ftp（依赖自动进）
+```
+
+记录器也可以按 `Recorder` 端口自实现。代次现读各 `moon.mod`。`moon add` 之后把下面这些 import
+写进你的 `moon.pkg`（MoonBit 的传递依赖不会自动可见，少一条就会报 "containing module is not
+imported"）：
 
 ```moonbit
 import {
@@ -108,7 +122,8 @@ async test "装上本机后端与记录器，把一次上传跑通" {
 ```
 
 依赖本库的包若收到 `... does not declare supported_targets` 警告（依赖的包声明了它），
-在自己的 `moon.pkg` 里补同款一行即可。
+在自己的 `moon.pkg` 里补一行即可，值与依赖声明同款：`supported_targets = "wasm+native+js"`
+（按你的实际构建档位收窄亦可）。
 
 ## 许可
 

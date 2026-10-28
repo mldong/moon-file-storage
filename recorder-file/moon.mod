@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-recorder-file"
 
-version = "0.1.3"
+version = "0.1.4"
 
 license = "Apache-2.0"
 
@@ -9,7 +9,7 @@ preferred_target = "wasm"
 description = "File-backed recorder for moon-file-storage"
 
 import {
-  "mldong/moon-file-storage@0.1.3",
+  "mldong/moon-file-storage@0.1.4",
   "moonbitlang/async@0.22.5",
 }
 
