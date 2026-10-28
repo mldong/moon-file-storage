@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-qiniu"
 
-version = "0.1.3"
+version = "0.1.4"
 
 license = "Apache-2.0"
 
@@ -10,7 +10,7 @@ description = "Qiniu Kodo platform adapter for moon-file-storage"
 
 import {
   "mldong/moon-hutool@0.1.7",
-  "mldong/moon-file-storage@0.1.2",
+  "mldong/moon-file-storage@0.1.3",
   "mldong/moon-kodo@0.20.0",
   "moonbitlang/async@0.22.5",
 }

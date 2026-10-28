@@ -49,10 +49,66 @@ async test "记录是意图加存储回填的字段，不是调用方自己拼�
 
 ```bash
 moon add mldong/moon-file-storage
+moon add moonbitlang/async
+moon add mldong/moon-file-storage-local
+moon add mldong/moon-file-storage-recorder-file
 ```
 
-代次现读 `moon.mod`。还需要一个后端模块（`moon-file-storage-local` 或
-`moon-file-storage-s3`）和一个记录器（`moon-file-storage-recorder-file`）。
+第三、四条换后端就换件：另有 `-s3`/`-qiniu`/`-oss`/`-cos`/`-obs`/`-ftp` 各一档；记录器也可以
+按 `Recorder` 端口自实现。代次现读各 `moon.mod`。`moon add` 之后把下面这些 import 写进你的
+`moon.pkg`（MoonBit 的传递依赖不会自动可见，少一条就会报 "containing module is not imported"）：
+
+```moonbit
+import {
+  "mldong/moon-file-storage/model",
+  "mldong/moon-file-storage/platform",
+  "mldong/moon-file-storage/storage",
+  "mldong/moon-file-storage-local/local",
+  "mldong/moon-file-storage-recorder-file/file" @record,
+  "moonbitlang/async",
+  "moonbitlang/async/fs",
+  "moonbitlang/core/encoding/utf8",
+}
+```
+
+这些 import 写在你放代码那个包的 `moon.pkg` 里：别名在主文件里用就写普通 `import { … }`；
+只在 `*_test.mbt`（黑盒测试）里用则要写 `import { … } for "test"`，否则会报 unused_package
+警告。
+
+两行装配一个本机后端加一个 JSON Lines 记录器，跑通一次上传（与上面 import 逐字对应，抄进
+测试包即可编译运行）：
+
+```moonbit
+async test "装上本机后端与记录器，把一次上传跑通" {
+  let root = @fs.tmpdir(prefix="mfs-readme") catch {
+    err => abort("tmpdir: " + err.to_string())
+  }
+  let local_platform = @local.LocalPlatform::new(@local.LocalConfig::{
+    platform: "local-1",
+    root_dir: root,
+    domain: "https://files.example.invalid",
+    base_path: "uploads",
+  })
+  let recorder = @record.FileRecorder::new(@record.FileRecorderConfig::{
+    root_dir: root + "/records",
+  })
+  let platforms : Array[&@platform.Platform] = [local_platform]
+  let service = @storage.Service::new(platforms, recorder)
+  let intent = @model.FileInfo::draft("local-1", "uploads", "hello", "txt")
+  let source = @model.UploadSource::Bytes(@utf8.encode("hello from the readme"))
+  let saved = service.save(intent, source) catch {
+    _ => abort("save failed")
+  }
+  assert_true(saved.url != "")
+  assert_eq(service.exists(saved) catch { _ => false }, true)
+  assert_eq(service.delete(saved) catch { _ => false }, true)
+  service.close()
+  let _ = @fs.rmdir(root, recursive=true) catch { _ => () }
+}
+```
+
+依赖本库的包若收到 `... does not declare supported_targets` 警告（依赖的包声明了它），
+在自己的 `moon.pkg` 里补同款一行即可。
 
 ## 许可
 
