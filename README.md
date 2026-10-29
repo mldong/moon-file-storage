@@ -189,23 +189,51 @@ async test "本机那条腿能存能取，URL 由存储回给你" {
 
 ## 装法
 
+### 安装到自己的项目
+
+使用库不需要克隆本仓。在本仓以外的目录创建消费工程，再进入含 `moon.mod` 的模块目录安装：
+
 ```bash
+moon new storage-demo
+cd storage-demo
 moon add mldong/moon-file-storage
 moon add mldong/moon-file-storage-local
 moon add mldong/moon-file-storage-recorder-file
 moon add moonbitlang/async
 ```
 
+已有项目可跳过创建步骤，进入自己的模块目录执行上述 `moon add`；若项目使用 `moon.work`，
+应进入实际使用本库的成员模块目录，不在工作区根目录执行。
+
 接其余五家再各加一层：`mldong/moon-file-storage-s3`（配 `mldong/moon-s3`）、
 `mldong/moon-file-storage-qiniu`（配 `mldong/moon-kodo`）、`mldong/moon-file-storage-oss`（配 `mldong/moon-oss`）、
 `mldong/moon-file-storage-cos`（配 `mldong/moon-cos`）、`mldong/moon-file-storage-obs`（配 `mldong/moon-obs`）。
 代次现读各模块 `moon.mod` 的 `version`。
-本仓自己就是个 `moon.work` 工作区，`moon test --target wasm` 一把跑全部模块；本地全门禁与 CI
-verify job 同一套：`moon check --target wasm --no-render`、`moon test --target wasm -j 1
---no-render`、`bash scripts/module-manifest-check.sh`、`bash scripts/readme-check.sh`。
-可运行示例（零网络，真读写走本机磁盘）：`moon run --target wasm examples/cmd/main`。
 你的包若收到 `... does not declare supported_targets` 警告（依赖的包声明了它），
 在自己的 `moon.pkg` 里补同款一行即可。
+
+### 克隆源码并验证
+
+本仓是 `moon.work` 工作区。以下命令在另一目录克隆源码，再进入仓库根目录检查、构建、测试与运行
+示例；无需执行上面的 `moon add`，成员模块已有依赖声明。
+
+```bash
+git clone https://github.com/mldong/moon-file-storage.git
+cd moon-file-storage
+moon update
+moon check --target wasm --no-render
+moon build --target wasm --no-render
+moon test --target wasm -j 1 --no-render
+moon run --target wasm examples/cmd/main
+```
+
+示例零网络，真读写走本机磁盘。继续在仓库根目录运行 CI 同款模块清单与 README 检查
+（需要 Bash、Python，且 `MOON_HOME` 指向已安装的 MoonBit 工具链）：
+
+```bash
+bash scripts/module-manifest-check.sh
+bash scripts/readme-check.sh
+```
 
 ## 新接一个平台
 
