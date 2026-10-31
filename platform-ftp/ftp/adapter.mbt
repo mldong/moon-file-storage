@@ -6,11 +6,11 @@
 /// 1. **连接是自己拨的**。S3/Kodo 那条腿收的是已经建好的客户端，这里收的是凭据：
 ///    FTP 的会话是长连接，端口没有"首次使用时再连"的位置，所以第一次真正要发命令时
 ///    才连，之后复用同一条。
-/// 2. **数据通道只认服务端报的地址**。客户端库把 `Tcp::addr()`（本机地址）当成了对端
-///    地址存进控制连接，于是 EPSV 的数据连接会拨回自己机器上（实测：控制 host 读到
-///    客户机自己的局域网地址，STOR 一律 `远程计算机拒绝网络连接`）。这里用
-///    `disable_epsv=true` + `trust_pasv_ip=true` 这一对开关绕过去，代价是 SSRF 守卫
-///    退化成"信 PASV 回包"。
+/// 2. **数据通道跟着控制连接走**。`EPSV` 只回端口，客户端拨的是控制连接的对端地址；
+///    `PASV` 回包里报的 IP 默认也不被信任（库自带的 SSRF 守卫），同样落到对端地址。
+///    上游 0.2.3 曾把 `Tcp::addr()`（本机地址）当对端地址存，非自环服务端上数据通道
+///    拨回客户机自己（<https://github.com/PaiGack/moonbit_ftp/issues/1>），0.2.5 已修：
+///    适配层不带任何开关，全走默认档。
 pub struct FtpPlatform {
   config : FtpPlatformConfig
   mut session : @ftplib.FTPClient?
@@ -32,12 +32,7 @@ pub fn FtpPlatform::config(self : FtpPlatform) -> FtpPlatformConfig {
 async fn FtpPlatform::connect(
   self : FtpPlatform,
 ) -> @ftplib.FTPClient raise @model.StorageError {
-  let client = @ftplib.dial(
-    self.config.addr,
-    timeout_ms=self.config.timeout_ms,
-    disable_epsv=true,
-    trust_pasv_ip=true,
-  ) catch {
+  let client = @ftplib.dial(self.config.addr, timeout_ms=self.config.timeout_ms) catch {
     err => raise map_error(err)
   }
   @ftplib.login(client, self.config.user, self.config.password) catch {

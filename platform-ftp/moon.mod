@@ -10,7 +10,7 @@ description = "FTP platform adapter for moon-file-storage"
 
 import {
   "mldong/moon-file-storage@0.1.5",
-  "PaiGack/ftp@0.2.3",
+  "PaiGack/ftp@0.2.5",
   "moonbitlang/async@0.22.5",
 }
 
