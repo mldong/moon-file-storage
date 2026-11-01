@@ -205,9 +205,11 @@ moon add moonbitlang/async
 已有项目可跳过创建步骤，进入自己的模块目录执行上述 `moon add`；若项目使用 `moon.work`，
 应进入实际使用本库的成员模块目录，不在工作区根目录执行。
 
-接其余五家再各加一层：`mldong/moon-file-storage-s3`（配 `mldong/moon-s3`）、
-`mldong/moon-file-storage-qiniu`（配 `mldong/moon-kodo`）、`mldong/moon-file-storage-oss`（配 `mldong/moon-oss`）、
-`mldong/moon-file-storage-cos`（配 `mldong/moon-cos`）、`mldong/moon-file-storage-obs`（配 `mldong/moon-obs`）。
+接其余六家再各加一层：`mldong/moon-file-storage-s3`（配 `mldong/moon-s3`）、
+`mldong/moon-file-storage-qiniu`（配 `mldong/moon-kodo`）、
+`mldong/moon-file-storage-ftp`（配第三方件 `PaiGack/ftp`；FTPS 走本件的 `tls`／`trust_pem_file` 两开关）、
+`mldong/moon-file-storage-oss`（配 `mldong/moon-oss`）、`mldong/moon-file-storage-cos`（配 `mldong/moon-cos`）、
+`mldong/moon-file-storage-obs`（配 `mldong/moon-obs`）。
 代次现读各模块 `moon.mod` 的 `version`。
 你的包若收到 `... does not declare supported_targets` 警告（依赖的包声明了它），
 在自己的 `moon.pkg` 里补同款一行即可。
