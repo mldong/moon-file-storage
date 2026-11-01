@@ -107,6 +107,7 @@ fn ext_of_key(key : String) -> String raise @model.StorageError {
 ///|
 /// 拼 URL 的前缀。没给 `domain` 就从拨号地址算一条——FTP 的对象地址本来就能算出来。
 /// IPv6 地址在这里不成立（`ftp://::1` 那种形状要自己加方括号），那种端点请显式给 `domain`。
+/// TLS 档的 scheme 是 `ftps://`；显式升级不换端口，缺省端口两种档都是 21。
 fn url_base(config : FtpPlatformConfig) -> String {
   match config.domain {
     Some(domain) => trim_trailing_slash(domain)
@@ -117,7 +118,8 @@ fn url_base(config : FtpPlatformConfig) -> String {
       } else {
         bare + ":21"
       }
-      "ftp://" + with_port
+      let scheme = if config.tls { "ftps" } else { "ftp" }
+      scheme + "://" + with_port
     }
   }
 }

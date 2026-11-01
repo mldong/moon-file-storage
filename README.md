@@ -13,7 +13,7 @@ x-file-storage 的 MoonBit 等价物：一个存储端口、一份平台契约�
 | `mldong/moon-file-storage-local` | 本机磁盘后端 |
 | `mldong/moon-file-storage-s3` | S3 与 S3 兼容端点的后端适配 |
 | `mldong/moon-file-storage-qiniu` | 七牛 Kodo 的后端适配 |
-| `mldong/moon-file-storage-ftp` | FTP 后端适配（长连接自拨、`..` 与 CR/LF 在拨号前拒） |
+| `mldong/moon-file-storage-ftp` | FTP 后端适配（长连接自拨、`..` 与 CR/LF 在拨号前拒）；FTPS 走显式 `AUTH TLS`（`tls` 开关＋`trust_pem_file`） |
 | `mldong/moon-file-storage-oss` | 阿里云 OSS 的后端适配（原生 V4 签名与虚主机寻址；canned ACL 那一族报 false） |
 | `mldong/moon-file-storage-recorder-file` | 把上传记录落成本机 JSON Lines |
 | `mldong/moon-file-storage-verify` | 那份平台契约正文，新平台照着写一条腿 |

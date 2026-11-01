@@ -136,3 +136,54 @@ test "an aggregated library error is read through its first mappable member" {
   let mapped = storage_text(map_error(joined))
   assert_true(mapped.has_prefix("Platform: ftp 550"))
 }
+
+///|
+test "the tls flag resolves the trust root and swaps the url scheme" {
+  let plain = FtpPlatformConfig::new("ftp", "192.0.2.1", "u", "p")
+  assert_false(plain.tls)
+  let plain_root = match trust_root(plain) {
+    @tls.TrustedRoot::SystemRoot => true
+    _ => false
+  }
+  assert_true(plain_root)
+  assert_eq(url_base(plain), "ftp://192.0.2.1:21")
+  let tls = FtpPlatformConfig::new(
+    "ftps",
+    "192.0.2.1",
+    "u",
+    "p",
+    tls=true,
+    trust_pem_file="C:/ca/root.pem",
+  )
+  let given_path : String? = match trust_root(tls) {
+    @tls.TrustedRoot::CustomPemFile(path) => Some(path)
+    _ => None
+  }
+  assert_eq(given_path, Some("C:/ca/root.pem"))
+  // 显式升级不换端口：缺省端口两种档都是 21，scheme 换成 ftps
+  assert_eq(url_base(tls), "ftps://192.0.2.1:21")
+  assert_eq(
+    url_of(tls, "2026/11/note.txt"),
+    "ftps://192.0.2.1:21/2026/11/note.txt",
+  )
+  // 拼出去的要能原样折回 key，往返判据与明文档同一把尺
+  assert_eq(relative_of_url(tls, url_of(tls, "x/y.txt")), Some("x/y.txt"))
+  assert_eq(relative_of_url(tls, "ftp://192.0.2.1:21/x/y.txt"), None)
+  // 给了 domain 就照原样用：scheme 由调用方的那条串说了算
+  let given = FtpPlatformConfig::new(
+    "ftps",
+    "192.0.2.1",
+    "u",
+    "p",
+    domain=Some("ftps://files.example.invalid/"),
+    tls=true,
+  )
+  assert_eq(url_base(given), "ftps://files.example.invalid")
+  // 不给 PEM 就落回系统信任根
+  let system = FtpPlatformConfig::new("ftps", "192.0.2.1", "u", "p", tls=true)
+  let system_root = match trust_root(system) {
+    @tls.TrustedRoot::SystemRoot => true
+    _ => false
+  }
+  assert_true(system_root)
+}

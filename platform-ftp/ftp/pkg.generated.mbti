@@ -46,8 +46,10 @@ pub(all) struct FtpPlatformConfig {
   password : String
   domain : String?
   timeout_ms : Int32
+  tls : Bool
+  trust_pem_file : String
 }
-pub fn FtpPlatformConfig::new(String, String, String, String, domain? : String?, timeout? : Int32) -> Self
+pub fn FtpPlatformConfig::new(String, String, String, String, domain? : String?, timeout? : Int32, tls? : Bool, trust_pem_file? : String) -> Self
 
 // Type aliases
 

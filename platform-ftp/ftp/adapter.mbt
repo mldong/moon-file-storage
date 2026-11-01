@@ -11,6 +11,10 @@
 ///    上游 0.2.3 曾把 `Tcp::addr()`（本机地址）当对端地址存，非自环服务端上数据通道
 ///    拨回客户机自己（<https://github.com/PaiGack/moonbit_ftp/issues/1>），0.2.5 已修：
 ///    适配层不带任何开关，全走默认档。
+/// 3. **FTPS 只有一档：显式升级**。`tls=true` 时明文拨入控制端口再发 `AUTH TLS`
+///    （RFC 4217），数据通道由库按 `PROT P` 加密；隐式 TLS（990 直连握手）不接。
+///    信任根默认系统根，私有 CA 走 `trust_pem_file`。明文档两个参数都不消费，
+///    行为与未加 FTPS 之前逐字节相同。
 pub struct FtpPlatform {
   config : FtpPlatformConfig
   mut session : @ftplib.FTPClient?
@@ -32,7 +36,13 @@ pub fn FtpPlatform::config(self : FtpPlatform) -> FtpPlatformConfig {
 async fn FtpPlatform::connect(
   self : FtpPlatform,
 ) -> @ftplib.FTPClient raise @model.StorageError {
-  let client = @ftplib.dial(self.config.addr, timeout_ms=self.config.timeout_ms) catch {
+  // `explicit_tls` 与 `trust` 在明文档（tls=false）下都不被库消费，传了也无副作用
+  let client = @ftplib.dial(
+    self.config.addr,
+    timeout_ms=self.config.timeout_ms,
+    explicit_tls=self.config.tls,
+    trust=trust_root(self.config),
+  ) catch {
     err => raise map_error(err)
   }
   @ftplib.login(client, self.config.user, self.config.password) catch {
@@ -46,6 +56,18 @@ async fn FtpPlatform::connect(
   }
   self.session = Some(client)
   client
+}
+
+///|
+/// TLS 档的信任根：没给 PEM 就用系统信任根（wasm 档经运行时宿主走 OS 校验，
+/// 2026-11-01 探针：baidu 握手成功、自签名按预期被拒）；给了就是私有 CA 的
+/// PEM 文件路径（路径按运行时文件系统解析）。
+fn trust_root(config : FtpPlatformConfig) -> @tls.TrustedRoot {
+  if config.trust_pem_file.is_empty() {
+    @tls.TrustedRoot::SystemRoot
+  } else {
+    @tls.TrustedRoot::CustomPemFile(config.trust_pem_file)
+  }
 }
 
 ///|

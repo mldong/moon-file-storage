@@ -3,6 +3,7 @@ import {
   "mldong/moon-file-storage/platform",
   "PaiGack/ftp" @ftplib,
   "moonbitlang/async/io",
+  "moonbitlang/async/tls",
 }
 
 // 黑盒用例要么调端口方法（同步那几族不需要运行时），要么调 `async fn` 的拒绝档，
