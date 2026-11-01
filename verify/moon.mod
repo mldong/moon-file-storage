@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-verify"
 
-version = "0.1.10"
+version = "0.1.11"
 
 license = "Apache-2.0"
 
@@ -10,7 +10,7 @@ description = "Shared platform contract suite for moon-file-storage"
 
 import {
   "mldong/moon-hutool@0.1.7",
-  "mldong/moon-file-storage@0.1.5",
+  "mldong/moon-file-storage@0.1.6",
   "mldong/moon-file-storage-local@0.1.5",
   "mldong/moon-file-storage-recorder-file@0.1.5",
   "mldong/moon-file-storage-s3@0.1.5",
@@ -18,7 +18,7 @@ import {
   "mldong/moon-kodo@0.20.0",
   "mldong/moon-s3@0.1.3",
   "mldong/moon-oss@0.20.0",
-  "mldong/moon-file-storage-ftp@0.1.5",
+  "mldong/moon-file-storage-ftp@0.1.6",
   "mldong/moon-file-storage-oss@0.1.5",
   "mldong/moon-cos@0.20.0",
   "mldong/moon-file-storage-cos@0.1.5",

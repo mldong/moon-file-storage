@@ -48,7 +48,7 @@ jobs:
       # 146（工作区还挂着 `../moon-obs` 那份 clone，含它自带的 49 条）→ 97（影子撤了，
       # 那 49 条回到它自己的仓里跑）→ 99（10-21 自定义域名那一轮，两条腿各 +1 条）。
       # 别再拿上一行加增量：这条线每次加包、每次给 SDK 补档、每次改工作区形状都要重跑一遍再改。
-      EXPECTED_TESTS: "99"
+      EXPECTED_TESTS: "102"
     steps:
       - uses: actions/checkout@v4
 
@@ -91,6 +91,7 @@ jobs:
           legs=$(cat <<'LEG'
           verify/cos_contract|2|COS_AK COS_SK COS_BUCKET COS_REGION
           verify/ftp_contract|2|FTP_HOST FTP_USER FTP_PASS
+          verify/ftps_contract|2|FTPS_HOST FTPS_USER FTPS_PASS
           verify/oss_contract|1|OSS_AK OSS_SK OSS_BUCKET OSS_REGION
           verify/qiniu_contract|1|KODO_AK KODO_SK KODO_BUCKET
           verify/s3_contract|1|S3_LIVE_ENDPOINT S3_LIVE_BUCKET S3_LIVE_REGION S3_LIVE_AK S3_LIVE_SK
