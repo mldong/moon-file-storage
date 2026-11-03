@@ -11,7 +11,7 @@ description = "FTP platform adapter for moon-file-storage"
 import {
   "mldong/moon-file-storage@0.1.6",
   "PaiGack/ftp@0.2.5",
-  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.7",
 }
 
 readme = "README.md"

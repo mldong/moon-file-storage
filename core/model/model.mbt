@@ -13,13 +13,15 @@ pub(all) suberror StorageError {
 }
 
 ///|
+#derive(Eq, @json.ToJson, @json.FromJson)
 pub(all) struct HashInfo {
   md5 : String?
   sha1 : String?
   sha256 : String?
-} derive(Eq, @json.ToJson, @json.FromJson)
+}
 
 ///|
+#derive(Eq, @json.ToJson, @json.FromJson)
 pub(all) struct FileInfo {
   id : String?
   url : String
@@ -48,7 +50,7 @@ pub(all) struct FileInfo {
   upload_id : String?
   upload_status : String?
   create_time : Int64
-} derive(Eq, @json.ToJson, @json.FromJson)
+}
 
 ///|
 pub(all) enum UploadSource {
@@ -58,13 +60,14 @@ pub(all) enum UploadSource {
 }
 
 ///|
+#derive(Eq, @json.ToJson, @json.FromJson)
 pub(all) struct FilePartInfo {
   platform : String
   upload_id : String
   part_number : Int32
   size : Int64
   etag : String
-} derive(Eq, @json.ToJson, @json.FromJson)
+}
 
 ///|
 /// One page of the parts already uploaded under an `upload_id`. The marker is the
@@ -113,11 +116,12 @@ pub(all) struct Capabilities {
 /// un-understandable value cannot be built at all, so that `false` branch has no
 /// place to occur. `header_value` is the wire form the object store expects in
 /// `x-amz-acl`.
+#derive(Eq)
 pub(all) enum CannedAcl {
   Private
   PublicRead
   PublicReadWrite
-} derive(Eq)
+}
 
 ///|
 /// Which storage the copy/move goes through. Same name, same three档位 as the
@@ -126,18 +130,20 @@ pub(all) enum CannedAcl {
 /// storage and that storage has the family, and otherwise falls back to the
 /// general "read it, then upload it" path; `Same` demands the platform path and
 /// reports a refusal when the storage does not have it; `Cross` never uses it.
+#derive(Eq)
 pub(all) enum CopyMode {
   Auto
   Same
   Cross
-} derive(Eq)
+}
 
 ///|
+#derive(Eq)
 pub(all) enum MoveMode {
   Auto
   Same
   Cross
-} derive(Eq)
+}
 
 ///|
 /// The two values the reference framework keeps on a record while a multipart
@@ -161,21 +167,23 @@ pub fn CannedAcl::header_value(self : CannedAcl) -> String {
 ///|
 /// One directory entry from `list_files`: `path` is the full key prefix (the
 /// common prefix the store answered with), `name` is its last segment.
+#derive(Eq)
 pub(all) struct ListedDir {
   path : String
   name : String
-} derive(Eq)
+}
 
 ///|
 /// One object entry from `list_files`, single level only — a nested key shows up
 /// under its directory, not flattened here.
+#derive(Eq)
 pub(all) struct ListedFile {
   path : String
   name : String
   size : Int64
   last_modified : String?
   etag : String?
-} derive(Eq)
+}
 
 ///|
 /// The one-level listing: `dirs` from the store's common prefixes, `files` from

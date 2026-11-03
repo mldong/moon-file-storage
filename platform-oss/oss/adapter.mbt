@@ -217,7 +217,9 @@ fn pairs_meta(pairs : Array[(String, String)]) -> Map[String, String] {
 /// ListParts 的续页标记在协议里是字符串，端点不给就是"到底了"。读不出数字就当没有
 /// 下一页标记，不硬造一个 `0`——那会让调用方把"到底"读成"从第一片重来"。
 fn marker_to_int32(text : String) -> Int32? {
-  let parsed = Some(@string.parse_int(text.view(), base=10)) catch { _ => None }
+  let parsed = Some(@string.parse_int(text.clamped_view(), base=10)) catch {
+    _ => None
+  }
   parsed
 }
 

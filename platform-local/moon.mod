@@ -11,7 +11,7 @@ description = "Local filesystem platform for moon-file-storage"
 import {
   "mldong/moon-file-storage@0.1.5",
   "mldong/moon-hutool@0.1.7",
-  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.7",
 }
 
 readme = "README.md"

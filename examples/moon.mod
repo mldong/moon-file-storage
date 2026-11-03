@@ -18,7 +18,7 @@ import {
   "mldong/moon-file-storage-ftp@0.1.5",
   "mldong/moon-s3@0.1.3",
   "mldong/moon-kodo@0.20.0",
-  "moonbitlang/async@0.22.5",
+  "moonbitlang/async@0.22.7",
 }
 
 repository = "https://github.com/mldong/moon-file-storage"
