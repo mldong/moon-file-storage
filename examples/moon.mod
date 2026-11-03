@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-examples"
 
-version = "0.1.2"
+version = "0.1.3"
 
 license = "Apache-2.0"
 
@@ -9,15 +9,15 @@ preferred_target = "wasm"
 description = "Local workspace examples; not a published module"
 
 import {
-  "mldong/moon-hutool@0.1.7",
-  "mldong/moon-file-storage@0.1.5",
-  "mldong/moon-file-storage-local@0.1.5",
-  "mldong/moon-file-storage-recorder-file@0.1.5",
-  "mldong/moon-file-storage-s3@0.1.5",
-  "mldong/moon-file-storage-qiniu@0.1.6",
-  "mldong/moon-file-storage-ftp@0.1.5",
-  "mldong/moon-s3@0.1.3",
-  "mldong/moon-kodo@0.20.0",
+  "mldong/moon-hutool@0.1.8",
+  "mldong/moon-file-storage@0.1.8",
+  "mldong/moon-file-storage-local@0.1.6",
+  "mldong/moon-file-storage-recorder-file@0.1.6",
+  "mldong/moon-file-storage-s3@0.1.6",
+  "mldong/moon-file-storage-qiniu@0.1.7",
+  "mldong/moon-file-storage-ftp@0.1.7",
+  "mldong/moon-s3@0.1.4",
+  "mldong/moon-kodo@0.20.1",
   "moonbitlang/async@0.22.7",
 }
 

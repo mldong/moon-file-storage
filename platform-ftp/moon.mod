@@ -1,6 +1,6 @@
 name = "mldong/moon-file-storage-ftp"
 
-version = "0.1.6"
+version = "0.1.7"
 
 license = "Apache-2.0"
 
@@ -9,7 +9,7 @@ preferred_target = "wasm"
 description = "FTP platform adapter for moon-file-storage"
 
 import {
-  "mldong/moon-file-storage@0.1.6",
+  "mldong/moon-file-storage@0.1.8",
   "PaiGack/ftp@0.2.5",
   "moonbitlang/async@0.22.7",
 }
